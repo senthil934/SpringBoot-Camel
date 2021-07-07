@@ -1,0 +1,73 @@
+If u want to use Lombok, we have enable in IDE for that, 
+goto c/users/senthil/m2/repo/org/projectlombok/lombok/ double click jar file
+   Give the path of eclipse
+   Click Install/Update
+Then give mvn clean install and update the project
+Now lombok will be working in eclipse
+
+Spring Boot Validation
+1. Create SpringBoot-Validation project with web, validation dependency
+2. Whenever we get response status as BAD_REQUEST and exception is of type MethodArgumentNotValidException such case we return 2 things which field and wht message for that we create Map 
+  Map<String,String> errors=new HashMap<>();
+ getBindingResult() is responsible to collect all error message related to the field, which returns error related to the field and keep field and error messages inside map
+3. Next we get all constraint validator error message and put inside map where we put message and path of message 
+4. We have @RestControllerAdvice as we are validating rest endpoint using Postman, in case if we use JSP then we use @ControllerAdvice 
+
+
+5. Start the appl and in Postman using POST request give http://localhost:8008/users/save
+  body-raw-json give 
+
+
+
+Spring Boot Interceptors
+    - Interceptors are used to intercept client request and process them, sometimes we want to intercept http request and do some processing before handing to controller to handle the methods. When request send to controller it will have to pass through interceptor before processed by controller.
+    - Interceptor is similar to filter,but interceptor is only applied to request that are sending to a controller
+    - We can use interceptor in Spring boot under following situation (ie) before sending request to controller using preHandle(), before sending response to client using postHandle(). For example we can use interceptor to add request header before sending request to controller and response header before sending response to client
+    - To work with interceptor we need to create @Component class which implements HandlerInterceptor interface and override 3 methods
+    1. preHandle() - used to perform operation before sending request to controller
+    2. postHandle() - used to perform operation before sending response to client 
+    3. afterCompletion() - used to perform operation after completing request and response 
+    - First request will start from browser goes to interceptor and preHandle() will be execute, then request will pass to main controller, so before sending response it goes to postHandle() and render the view to the client. When pre and post handle request are completed then afterCompletion() will execute
+    - An interceptor run between request whereas filter runs before rendering view
+    - Filter is related to Servlet API whereas interceptor is related to Spring concept. A servlet filter is used in web layer only, we cant use outside of web context. Interceptor can be used anywhere
+    - For authentication of web pages we can use servlet filter, for security stuff in business layer or login we can use interceptor
+    - We have LoggerInterceptor 
+
+Example 1:
+1. Create SpringBoot-Interceptor  with web dependency, and apache commons dependency
+<dependency>
+             <groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+        </dependency>
+2. We have RequestHandleInterceptor which extends HandlerInterceptorAdapter which is abstract class for simplified implementation of pre post interceptors. It has 3 methods preHandle(),postHandle(), afterCompletion() which can be overridden and used depending upon requirements
+    Here we use only preHandle() which handles something before hitting the controller. postHandle() handles something after returning from controller and afterCompletion() is something that can be handle after the response is sent and view is rendered 
+    We annotated this class with @Component which marks the class is bean so that component scanning mechanism of Spring can pick and pull it into application context 
+   For this example we have simple header validation, we add a new request header to my student request and if request header dosent have any value or empty then we throw InvalidHeaderFieldException. If request header has value then it will routed to the controller and the controller will process the request 
+
+3. We have to do some configuration in order to make interceptor work. For that we created StudentConfig.java
+   This class implements WebMvcConfigurer which has set of different methods to register different appl to the registry. Before Spring 5 we extends WebMvcConfigurerAdapter so after Spring 5 WebMvcConfigurerAdapter is deprecated so we use WebMvcConfigurer interface
+   We overridden method called addInterceptor(), here we add our interceptor to the registry. Here we autowired RequestHandlerInterceptor and adding interceptor to the registry. 
+  @Configuration annotation indicates that this class have one or more bean creation methods 
+
+4. We have InvalidHeaderFieldException which is custom exception to handle invalid header fields. This particular exception will be handled inside StudentExceptionHandler class 
+
+5. We have StudentExceptionHandler class which is @RestControllerAdvice which catches exception thrown in the appl. We have method handleInvalidFieldException() which is simple exception method that catches InvalidHeaderFieldException and gives exception message and status which is PRECONDITION_FAILED because if one of request header condition does not satisfy then entire request is rejected as PRECONDITION_FAILED because it does not satisfy pre condition to entire ur appl
+
+6.Start the appl and in postman with POST request give http://localhost:8000/student so without request header if we click send 
+   It will give "Invalid Request" 
+7. In postman with POST request give http://localhost:8000/student 
+under Headers - give
+student-auth-key    -    12345
+Under body - raw- json
+{
+    "firstName":"Ran",
+    "lastName":"kumar"
+}
+Click Send
+    Now it will display "Authorization 12345 is valid and data is saved"
+Since request header has passed the validation and gone to controller and send the message 
+
+
+Example 2: SpringBoot-Interceptor2
+   We will create one interceptor called ExecutionTimeInterceptor to check how much time is taken by request to complete 
