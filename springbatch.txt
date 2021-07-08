@@ -1,0 +1,106 @@
+Spring Batch is used to execute series of job at a particular point of time 
+
+Initially we have do everything manually now if we want automate that process at particular time. For example daily when time reach 6pm we want to execute some sort of job automatically we dont want to depend manually
+   We have bank appl, whenever they want to take backup means they send a message stating that we are planning to take backup so if u r doing any transaction at that time it will not reflect in ur database. Once every month or every year we want to execute series of job to take backup of the transaction   
+
+Job Scheduler - in a day when it 6pm it is launch a job. So scheduler will take responsibility when it reaches wht time we have to execute the job.
+
+Job Launcher - someone should take responsiblity to launch the job
+
+Job -divided into step and job will have single task/step or multiple step
+
+Step can have 3 division called Reader,processor,writer but we can decide whether we have 3 division or not. Based on chunk and tasklet we will decide 
+
+Step of 2 types based on requirement
+  1. Chunk - step is very complex
+  2. Tasklet  - step is very simple
+
+Consider we take 2 step 
+  1. delete a file which use tasklet
+  2. excel to database which use chunk 
+
+In this architecture, how manu job and how many steps.
+1 job and 2 step and steps are configured based on chunks, most properly in chuck only we will go with reader, processor and writer
+
+Entire step process is maintained by Step Execution and entire job process is maintained by Job Execution
+
+https://github.com/TechPrimers/spring-batch-example-1
+1. Enable @EnableBatchProcessing in main class
+
+2. Create controller with rest endpoint which returns BatchStatus which checks the status of job is completed or not. If all job are completed properly then it returns completed otherwise it returns some pending
+   - In architecture first we start job launcher, then we ccreate job, then create step, then reader, then processor, then writer
+   - In this controller we want to do batch processing for that invoking a job we need interface JobLanucher so we autowire JobLauncher which is responsible to launch the job, it is the one which execute all jobs
+   - Next we autowire Job which is divided into step
+  
+In the controller we specify in the appl we execute sequence of jobs for that we mention the JobLauncher which takes the responsibility to execute sequence of job. Now JobLauncher want to know what job to execute for that we create another class which has batch configuration
+
+3. Create SpringBatchConfig class with @Configuration inside this we say what  is my job and what are all the steps, whether we have 1 step or multiple step, whether that step is created as chunk or tasklet
+   -First we configure Job as bean, to create a job JobBuilderFactory take responsibility. Job contain step so create a step we need to use StepBuilderFactory. Step is divided into like ItemReader, ItemProcessor, ItemWriter so we have to pass as arguments
+   - All logic we write inside Step using StepBuilderFactory
+   - We can give any name,because whatever we are doing like what are steps creating, what are jobs creating, whether all job completed or not,all steps completed or not are maintained in database which are done by JobRepository 
+   so only we give some name so that in database we can see the job and its status 
+   - Now we decide to create step based on chunk or tasklet. Here we want to take data from csv file and store in database so for this purpose we define as chunk. 
+  - What task we are going to give, take the data from excel and store into db, but this task is divided as 10 chunk and do it
+    For tasklet we dont need to specify it because tasklet used for simple job so it can done at once. But here we divide lengthy process into 10 chunks and do it.
+    If it is divide into chunk it is further divide into reader (first go to csv file and read it), processor(process the data) and writer (write data) and finally build the step
+Step step = stepBuilderFactory.get("ETL-file-load")
+                .<User, User>chunk(100)
+                .reader(itemReader)
+                .processor(itemProcessor)
+                .writer(itemWriter)
+                .build();
+   - Now step is ready, now we want to assign this step to specific job using JobBuilderFactory and provide some name 
+   - Incrementor - so whenever any job runs it creates a job instance to create it we use RunIdIncrementor, so that we can come to know how many times job is run (ie) this job can run multiple instance so first time it give id as 1 and for second time its id as 2
+   - using start we will job with this step, in case we have multiple step
+return jobBuilderFactory.get("ETL-Load")
+                .incrementer(new RunIdIncrementer())
+                .start(step).next(step2)
+                .build();
+
+3. Now we give defination from ItemReader, writer and processor
+   - read data from flatfile, so we create instance
+   - from which source read the data (ie)from csv file
+   -  flatFileItemReader.setLinesToSkip(1); read the csv file but skip the first line as first line is header
+   - flatFileItemReader.setLineMapper(lineMapper());
+
+4. Now we create lineMapper() which pojo class should refer so based on that we store info in database 
+  we have compare csv with pojo class so that mapping will happen and store all data into database which will do by lineMapper()
+  1. We have to map csv file with pojo class for that we use
+DefaultLineMapper<User> defaultLineMapper = new DefaultLineMapper<>();
+  2. CSV is comma separated file 1,ram,33 where 1 represent 1st col, ram represent 2nd col. CSV need some delimiter to specify delimiter we use DelimitedLineTokenizer
+ DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
+lineTokenizer.setDelimiter(","); - splits based on ,
+
+  - Now we map csv separated with , to pojo class using
+  BeanWrapperFieldSetMapper<User> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
+fieldSetMapper.setTargetType(User.class);
+  - Now we set DelimitedLineTokenizer and BeanWrapperFieldSetMapper to DefaultLineMapper using 
+defaultLineMapper.setLineTokenizer(lineTokenizer);
+        defaultLineMapper.setFieldSetMapper(fieldSetMapper);
+
+5. Now we create Processor which implements ItemProcessor
+   - from csv file read all data and write all data into database 
+
+Initially ur csv file contains id,name,age,deptcode now we want to change to deptname instead of deptcode and store in db, this can be done inside processor and give to writer 
+ Because ur entity class we have deptname not as dept code 
+
+6. Now we create writer class to store all info into da
+
+7. Now joblauncher, job, reader,writer,processor is ready. The entire job is maintained by JobExecution which will get all updation of job
+  Now in controller method, we created all job,step, reader,writer,processor now when we run the appl u should read the data, process the data and write the data to db which happens automatically
+  Now we ask launcher to run the job(so job defined in controller and job() we define in SpringBatchConfig which contain abt step and step contain info abt reader, processor and writer 
+  JobLancher run the job and tell to JobExecution whether it is successfully executed or not and get the status from JobExecution
+
+So we initially configured JobLauncher, it will run Job and Job will run Step and step is agin divided into reader, writer,processor. Once job is executed successfully it gives status to JobExecution and finally it gives status to customer
+
+Go and checkdatabase it creates so many tables
+
+batch_job_instance is used to holds all info about job instance, which contains job_name which comes from our project in 
+batch_job_execution
+batch_step_execution
+
+Run http://localhost:8000/load it gives status as COMPLETED
+
+Each time we execute job id will be created 
+   
+https://grokonez.com/spring-framework/spring-batch/use-spring-batch-tasklet
