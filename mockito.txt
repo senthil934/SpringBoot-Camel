@@ -1,0 +1,412 @@
+Mockito
+
+Why junit test case?
+    we write test case to check whether functionality working properly or not
+    - method by method we are going to test 
+    - In real time it depends whether u r using junit or mockito to test ur application
+    
+Junit 5 - junit jupiter + mockito junit jupiter(3.2.4) - latest version - jupiter is 5th planet of sun and junit 5th release 
+Junit 4 - junit4.13+mockito-core 3.2.4
+
+Junit 4 - min jdk version is jdk5 and with single jar file
+Junit 5 - jdk version is jdk8 with 3 jar files
+   Junit5=Junit platform + Junit Jupiter + Junit vintage
+
+Junit platform
+   - Launch testing framework
+   - Define test engines
+   - Console launcher
+   - Junit 4 based runner
+   - Integration with 3rd party
+
+Junit Jupiter
+    - core of junit 5,new programming model + extension to write test and extension
+    - Its subproject provides test engine to run Jupiter based tests
+
+Junit Vintage
+   - To run tests that are written in junit4 and junit5
+
+Junit4 				Junit5
+@Before				@BeforeEach
+@After				@AfterEach
+@BeforeClass			@BeforeAll
+@AfterClass			@AfterAll
+@Ignore				@Disabled
+@Category			@Nested 
+
+
+
+
+
+
+
+why Mockito?
+   Mockito is an open source testing framework in java to create mock objects
+   Every web appl has 3 tier architecturelike controller, service, repository. Whenever we write test case using traditional approach without using mockito.
+  Suppose we write test case for controller,first it hits controller method from their it goes to service and then to repository. In order to test our appl we are hitting the db, so multiple time hitting db is not good practise. To avoid such type of issue mockito comes into picture
+
+   Suppose if we want to mock the repository data, so whatever request comes to the controller it forwards to service and instead of forwarding to repository and then to db. So mockito will act as db and we mock the data from service, so request data will not go to db for testing purpose.
+
+Benefits
+1. Saves developers from writing mock objects on their own
+2. supports exception handling - when we perform unit testing and our class under test contains negative scenario then mockito provide support for exception handling too
+3. Support for stubbing methods, it help us in returning configured response 
+    When we perform unit test on any class and that class depends on any external dependency like database, mockito helps to create mock object on external dependency, so if we call any method on mock dependency it helps in returning configured response
+4. It can check order of method calls and number of times method being called 
+5. Annotation support
+
+Difference between junit and mockito
+    1. With junit whether we run ur appl or test ur appl it will hit the database, but mockito will ask some mock data so that we can test the appl without hitting the database each time
+    2. It is going to check url based validation also, which means if the user enters a url, it test whether it goes to the related page or not
+
+1. Add dependency junit and spring-test
+
+2. Add @RunWith, @ContextConfiguration, @WebAppConfiguration
+
+@WebAppConfiguration annotation to test the web controllers. @WebAppConfiguration is a class-level annotation that will load web specific ApplicationContext(ie) from src/java/webapp, that is, WebApplicationContext. 
+
+2. Autowire WebApplicationContext 
+3. create instance of MockMvc through which all the testcases are running 
+
+4. We initialize MockMvc inside setUp() - It will initialize MockMvc using MockMvcBuilders and load the webApplicationContext which we initialized 
+
+5. To check whether our configuration works or not, we have basic test using
+
+
+
+@Mock creates a mock implementation for the classes you need.Whatever external dependency we need to mock
+@InjectMock creates an instance of the class and injects the mocks that are marked with the annotations @Mock into it. It tells which class is under test
+For example
+
+@Mock
+StudentDao studentDao;
+
+@InjectMocks
+StudentService service;
+
+
+
+Steps for testing
+1. We are using Junit4 version and we need 3 dependency in pom.xml
+https://www.devglan.com/spring-mvc/writing-junit-tests-in-spring4-mvc
+<dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+			<version>4.1.2</version>
+			<scope>test</scope>
+        </dependency>
+		
+		<dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+
+2.@RunWith - we are going to run testcase using Spring for that we combine with Junit4
+
+@RunWith(SpringRunner.class) : You need this annotation to just enable spring boot features like @Autowire, @MockBean etc.. during junit testing
+
+is used to provide a bridge between Spring Boot test features and JUnit. Whenever we are using any Spring Boot testing features in our JUnit tests, this annotation will be required.
+
+@SpringBootTest : This annotation is used to load complete application context for end to end integration testing
+
+The @SpringBootTest annotation can be used when we need to bootstrap the entire container. The annotation works by creating the ApplicationContext that will be utilized in our tests.
+
+
+@SpringBootTest loads full application context, exactly like how you start a Spring container when you run your Spring Boot application.
+
+@WebMvcTest loads only the web layer, which includes security, filter, interceptors, etc for handling request/response. Typically you would write tests for methods under @Controller or @RestController.
+
+@DataJpaTest loads only configuration for JPA. It uses an embedded in-memory h2 if not specified otherwise.
+
+@MockBean to add mock objects to the Spring application context. The mock will replace any existing bean of the same type in the application context.
+
+MockMVC class is part of Spring MVC test framework which helps in testing the controllers explicitly starting a Servlet container. we will use it along with Spring boot's WebMvcTest class to execute Junit testcases which tests REST controller methods
+
+3. TestBeanConfig.class - used to give info about packages 
+
+4. Declare Employee object and initialize inside setUp()
+
+      private Employee emp;
+
+      @Before
+      public void setUp(){
+          emp=new Employee();
+      }
+
+5. We are going to do service level test which means we are going to inject the service, the service will automatically goes to dao and from dao it goes to db
+    @Autowired
+    EmployeeService service;
+
+6. To test save is working or not
+     @Test
+     public void saveEmp(){
+       emp.setName("Ram");
+       emp.setAge(25);
+       emp.setQualification("BE");
+       emp.setEmail("ram@gmail.com");
+       service.saveEmployee(emp);
+     }
+Here we just use junit test case to check whether data is inserted
+
+7. As we are in testing env, it is not going to initialize ServletContext automatically, if we are running the appl it initialize automatically because we have container. But in testing env, the container will not be there so we have to create fake ServletContext using @WebAppConfiguration
+
+@WebAppConfiguration :Typically a Servlet container would provide the ServletContext but since we are in a testing environment, you need a fake servletContext and @WebAppConfiguration provides that.
+
+8. Run the test case and check whether the data is inserted into db
+
+9. To check fetching the data
+    @Test
+    public void fetchEmployee(){
+       assertEquals(3,service.fetchEmployee().size());
+    }
+
+10. Now we will discuss about mockito 
+http://zetcode.com/spring/mockmvc
+
+In order to use MockMvc which comes from Spring-test, first we have to create an object for MockMvc
+   private MockMvc mockMvc;
+
+11. In order to validate the url of particular controller means 
+@Before
+public void setUp(){
+this.mockMvc=MockMvcBuilders.standaloneSetup(this.wac).build();
+}
+
+Multiple controller use
+this.mockMvc=MockMvcBuilders.webAppContextSetup(this.wac).build();
+
+
+12. In order to specify ModelAttribute in MockMvc we have to use
+sessionAttr("modelattrname",mappedobject);
+or
+flashAttr("modelattrname",mappedobject);
+
+
+
+If we mock dao then only @RunWith, @WebAppConfiguration are needed.
+But if u mock service layer then there is no need to use @RunWith, @WebAppConfiguration 
+
+
+Refer Spring-Mock - com.pack.annotationsupport
+
+Junit5 will support annotation based mockito so we have to use @ExtendWith(MockitoExtension.class)
+Junit4 will use @RunWith(MockitoJunitRunner.class)
+
+1. Mockito using Annotation in Junit4 - 3ways
+     Here we are going to test BookService which depend on BookRepository and test getBookAppliedDiscount()
+     a. In order to use mockito in Junit4 is that use @RunWith(MockitoJunitRunner)
+     b. With Junit4 we have limitation that we can use only one runner in test, but sometime we need other runners related to spring framework so we cant use other runners, so Mockito provide another way
+    @Before
+    public void setUp(){
+       MockitoAnnotations.initMock(this);
+    }
+   c. In Junit4 other way to use mock annotation using Mockito rule
+@Rule
+public MockitoRule mockitoRule=MockitoJUnit.rule();
+
+
+Stubbing of methods
+    1. One of the primary benefit of Mockito is ability to return a provided response when a specific method is called on mocked dependency
+     Whenever class under test calls any method on mock dependency then we need to tell mockito what to return as the response of that method.
+    2. The process of writing how a given mock method should behave is called stubbing.
+    3. It is performed in 2 ways
+         - Using mockito static method when()+thenReturn(). It states that "when" any specific method is called on mock object, "then return" preconfigured value.
+         - Using Mockito static method doReturn()+when(). It states that "doReturn" preconfigured value, "when" specific method is called on mock object.
+    4. Mockito uses equals() while matching arguments during stubbing
+    - When we call "when()" we actually provide mock dependency and we call specific method on mock dependency,so when we call the method it may take certain arguments. So what mockito does is whatever arguments provided in when(), when we execute our test and whenever call reaches to our mock dependency where we call the specific method, there it simply uses equals() to check whatever we are stubbed is correct or not.
+   2. In case response is not stubbed for a method, default values are returned when called.
+     - When u r doing unit testing of our class under test which is calling external mock dependency, so when the point of execution reaches where call goes to the mock dependency and if u not stubbed that particular method then mockito simply returns a default value. 
+   For primitive - 0 is returned
+   For boolean - false is returned
+   For Objects and Arrays - null is returned
+   For Collections - empty collections is returned
+
+Example: Refer com.pack.stubbing
+1. In BookService,we have a method calculateTotalCost() which we test. This method takes list of bookids, and we iterate over bookid, now we go to bookRepository and get each book associated with bookid. From that book object we get the price of each book  and calculate the sum of prices of all book.
+2. When we are testing BookService, calculateTotalCost() we have to pass list of bookids, now it calls bookRepository findBookByBookId() which takes bookid. When we do stubbing of bookRepository.findBookByBookId(), now mockito will use equals() while matching the arguments. 
+     Whatever the arguments u r passed to calculateTotalCost() and whatever we provided the stub in BookServiceTest test class, it should match. If we didnt provide any stuff then default value will be return by mockito.
+
+Step 1:
+In testCalculateTotalCostOfBooks(), we create list of bookids and stubbing the book using when() and thenReturn() with book objects we created.
+Step 2:
+Another way to do stubbing using doReturn() and when()
+Step 3:
+In case if we mistakenly left any braces in stubbing with doReturn() and when() then it leads to UnFinishedStubbingException
+
+Both when() are different,
+1. when(bookRepository.findBookByBookId("1235")).thenReturn(book1);
+      - It takes method to be stubbed as argument and present in org.mock.mockito.*
+2. doReturn(book2).when(bookRepository).findBookByBookId("1235");
+      - It takes mock as an argument and present in Stubber interface provided by mockito
+
+Step 4:
+ In previous steps, we told mockito to stub bookRepository.findBookByBookId() twice since we are passing 2 different bookid 1234 and 1235.
+   Now in case if we want to calculate total book price for bookid 1234 and 1234, instead of writing stub method twice. We can stub multiple calls to same method 
+
+Step 5:
+   Consider in test class it calls void method in BookRepository, in case of void method we cant use when() and thenReturn() because we cant return anything from void method
+   In BookService, create addBook() which take book as an argument and inside we call bookRepository.save(), to save book object into db.
+   If we want to test void method, then we use doNothing() with when()
+
+
+
+
+
+
+What is Spy? 
+
+   1. Spy objects record information about how they were interacted.
+   2. Spy allow us to call normal methods of the external dependency while still tracking every interaction. Thus it is very less used mock object in real world as actual external dependency is still involved. 
+  3. They are also called partial mock because whatever method we want to mock we can use spy and whatever method we want to call in actual dependency, we can do
+
+For example, if we want to test BookService class which depends on BookRepository which communicate with db. We have created a spy of BookRepository. So when we call any method on BookService from Test, the call goes to BookRepsoitorySpy which keep the track of method being called in BookReposiotorySpy which internally calls method of BookRepository which goes to db and gets actual response and finally spied response back to our test.
+   BookRepositorySpy can be worked in 2 ways, either we can go and call external dependency to fetch from db or instead of going to external dependency we can mock that method and send spiedresponse.
+   So with spy we can either mock the method which we are calling in BookRepository or we can call actual method that goes to db and bring back the response.
+
+Example: Refer com.pack.spies
+
+1. BookManager is dependent of BookService. Here BookService is external dependency to BookManager.
+2. BookManager calls BookService twice, first to call findBook() which connect to db to get book and secondly it calls getAppliedDiscount() to calculate discount
+3. We have findBook() which fetch something from database or method is not implemented or it throws some exception, so from our test we need to mock this method because it deals with external dependency or not it is implemented
+   But getAppliedDiscount() has some logic which is not dependent on any external dependency and need to call to apply the discount
+  So some time this scenario comes where it is dependent on 2 methods, where findBook() we need to mock and applyDiscountOnBook() we need to actually call, at that time spy comes into picture.
+4. Write test testMockitoSpy()
+
+5. In case of mock we can use when() thenReturn() because it actually calls the original method, but in spy we can use doReturn() with when()
+
+
+Exception Handling in Mockito - Refer com.pack.exceptionhandling
+   Performing testing on exception covers our negative scenarios
+
+1. In BookRepository, if any exception occurs while finding all books in findAllBooks(), so in catch block we catch custom exception
+2. If we test getTotalPriceOfBooks(), let suppose findAllBooks() throws an exception so class under test should throw DatabaseReadException with the message
+   If we test non void methods for exception,here findAllBooks() returns List<Book> so we have to use when() with thenReturn()
+   In case we want to test void method for exception, here save() returns void so we have to use doThrow() with when()
+
+
+ArgumentCaptor 
+   We see how we can capture the arguments that passed to mock methods so that we can perform further assertion on those methods
+
+1. In BookService, addBook() internally creates book object, when save()  is called with book object we ask mockito to capture the book object 
+
+2. In BookServicetTest, after calling bookService.addBook() we get capture book and perform assertion on top of it
+  - We create BookRequest object and before calling addBook() we captor book object using ArgumentCaptor
+  ArgumentCaptor<Book> bookArgumentCaptor=ArgumentCaptor.forClass(Book.class);
+  - We have tell mockito when bookRepository, save() is called with book object, we need to captor book object using 
+    verify(bookRepository).save(bookArgumentCaptor.capture());
+  - After getting captured book we can get the value of Book and provide asserts on top if it 
+     Book book=bookArgumentCaptor.getValue();
+
+3. If we want to use ArgumentCaptor using annotation then use @Captor 
+
+
+Behavior Verification
+   1. One of the primary benefit of Mock object is that once it gets created, it remembers all operation performed on it.
+   When we create mock object on external dependency using mockito, it provides certain capabilities to mock object (ie) whatever methods we called on mock object, usually the mock objects remembers all interaction made on it
+  2. Behavior verification helps us in verifying that certain mock method was called by System under test or not
+    When test class calls a method on mock dependency sometime in unit testing it become crucial step to verify that certain mock methods are called or not.
+    3. It is done by using verify()
+For eg: verify(bookRepository).save(book);
+    In verify we pass mock dependency bookRepository and then we provide whether save() is called or not.So whenever unit test excute this call it simply told bookRepository save() was called with book object.
+  4. verify() method checks if a given method was called once and only once with given arguments.
+   5. It uses equals()method to compare the arguments and verify mock method was called with proper arguments 
+    
+1. Verify simple invocation on mock
+      - If we want to test addBook() of BookService, which calls bookRepository save() which stores book in to database.
+      -When we create mock object of bookRepository, there is no way in our test we come to know bookRepository save() is called or not and whether is called with correct argument or not.
+     verify(bookRepository).save(book);
+   Mockito verify whether save() is called or not.
+   But if book price is less than 500, then it will return and it wont execute save(). Now change book price form 600 to 500 and run, the test case will be failed.
+   Mockito compares the book arguments using equals method.
+
+2. Verify number of interactions with mock
+     - In testSaveBookWithBookRequestWithGreaterPrice(), the price of book is 500 and we call addBook() with bookRequest, it goes to addBook() of BookService and simply return from this method as price <= 500.
+   So if we run the test case, it will executed successfully but here simply called BookService addBook() with bookRequest but we dont know whether addBook() of BookService is executed completely. 
+   We need to perform behavior verification whether it method executes completely or it return from the method. Here price of book is 500 and when we call addBook() we should have return from the method since price <= 500. 
+   	verify(bookRepository, times(0)).save(book);
+   - As per the use case, we ask mockito to verify that save() is not called at all. Wecan verify that using times() that how many times save() is called. Here we indicate bookRepository with save() is not called at all.
+
+3. Verify number of interactions with mock
+     - Now we gave book price as 600 so we wont return and instead book will be created and all properties from bookRequest and copied to book object and book will save into repository.
+   Mockito will verify the book object in save() of test class as well as book object in save() of BookService are same by using equals(). So if change the price of book in bookRequest and book object then test case would be failed,because mockito will check object using equals() to check equality based on proce, title and name.
+
+4. Verify an interaction has not occured
+      In this case if book price is 500, it just return and it womt excute the save(), for that previously we used times(). Instead we can use never() also
+    verify(bookRepository, never()).save(book);
+
+5. Verify no interaction with Mock 
+      Consider we have updatePrice() which takes bookId and updatePrice, so for that book id we are updating the price. Now we find book based on id which returns the book, on the book we update the price and save the book.
+    Now we test updatePrice(), in that if we pass bookid as null, we dont want to update the price in that case we use verifyNoInteraction()
+
+
+6. Verify no unexpected interaction
+      Consider a condition that book we found from bookRepository price is equal to updated price so we have to return, no need to save the price 
+
+
+What is Argument Matchers?
+    1. One of the primary benefit of Mockito is ability to perform Stubbing of methods and behavior verification.
+For eg - Stubbing of methods
+  when(bookRepository.findBookById("1234")).thenReturn(book);
+For eg - Behavior verification
+   verify(bookRepository).save(book);
+    2. Mockito uses equals() to compare the arguments and verify that mock method was called with proper arguments
+   3. In case if we want to pass some dynamic values to arguments using Argument matchers
+    Argument Matchers are like wildcards where instead of specific input we can specific range or type of inputs
+eg: Instead of using specific string "1234" we can specify any string using anyString()
+
+Type Argument Matchers
+1. Type Argument Matchers can match to any type of arguments. It has 3 methods
+    any() - any object or null - For ex, in findBookByBookId() which takes fixed string value 1234 or any particular type, then we use any()
+    any(Class c) - any object of given type or null - For eg: In bookRepository.save() which takes book class 
+    anyVararg() - any vararg
+
+Step 1
+  In BookServiceTest, we use testUpdatePrice(), here we invoked bookService.updatePrice() passing bookid 1234 which is fixed value and update the book price from 600 to 500. Then inside updatePrice() will get the book and set the update price into book and finally save the book.
+   When findBookById() is called with 1234 we are returning book1 having price as 600 and then updating price as 500 and goes to save() with price as 500 which initially 600. We are simply verify save() should called with book2 with price as 500. So mockito uses equals() to compare (ie) book2.equals() whatever book is going to save() in updatePrice().
+    Here we stubbing findBookById() which takes any string value and then return book object.
+
+Step 2 - Invalid use of Argument Matchers
+   Here we test testInvalidUseOfArgumentMatchers() inside we stub bookRepository.findBookByTitleAndPublishedDate() which takes String and Date as argument. Here for one argument it provide normal value and for date we use any(). This is one of invalid use of argument matcher.
+   - Argument matchers should be provide for all arguments, either u provide all arguments with argument matcher or all with fixed values. So for that we use eq() argument matcher for string and any() for date
+
+when(bookRepository.findBookByTitleAndPublishedDate("Mockito In Action", any())).thenReturn(book); //error
+
+   - Argument matchers can be used only in when() or with verify(), u cant call argument matchers while calling the methods.
+
+Book actualBook = bookService.getBookByTitleAndPublishedDate(eq("Mockito In Action"), any()); //error
+
+Step 3 - Specific type of argument matchers
+     1. Specific type of argument matchers can match to any object of given type like
+anyBoolean(),anyByte(), anyChar(), anyDouble(), anyFloat(), anyInt(), anyLong(),anyShort(), anyString()
+
+Step 4 - Collection Type Argument Matchers
+   - To match any collection type based on provided type using anyCollection(), anyList(), anySet(), anyMap()
+
+Step 5 - String Type Argument Matchers
+   - Used to match string type using matches(String), startsWith(String), endsWith(String), contains(String)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
