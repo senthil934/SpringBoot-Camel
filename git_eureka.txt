@@ -1,0 +1,662 @@
+1. git init  - creates local git repository (private copy of shared repo)
+2. git remote add origin " "
+3. git add .  - add all files to staging area, only files present in staging area used for commit
+4. git commit -m "Initial commit" - move all files frm staging area to local repo
+5. git status - returns the current state of repo
+5. git config --global http.sslVerify "false"
+6. git push -u -f origin master
+
+create a folder
+1. git init
+2. git pull "git url"
+3. change some code in project
+4. git status
+5. git add .
+6. git commit -m "Initial commit"
+7. git remote add origin " "
+8. git push -u -f origin master
+
+
+What is version control?
+     Version control as the management system that manages the changes that you made in ur project till ur end. The changes that you made might be adding new files or modifying the older files by changing source code or something.
+    So what version control system does is that everytime u make change in ur project, it creates a snapshot of entire project and saves it. These snapshots are called as different versions. The snapshots are actually the entire state of the project  at a particular time.
+   Consider we are developing our own website, in the start we have only one webpage index.html and after few days we added another page about.html, and made some modification in about.html by adding some picture and texts, so version control system has detected something has been modified and created. For example, it stores about.html is created and some picture is added into it. After few days we have changed entire layout of about.html and again version control detect some change and says about.html is modified. You can consider all of these 3 snapshots as different version.
+
+Why version control?
+1. Collabortion
+      Imagine there are 3 developers working in a project and everyone are working in isolation or even if they working in same share folder, there might be conflict if each one of them trying to modify the same file.
+    Consider developer1 is making some changes xyz in particular appl and in same appl developer2 is making other changes abc and there are making same modification to same file in differently. At the end if we try to merge their work altogether lead to some of conflicts. And we might not know who have done what  kind of changes so it lead to many confusion.
+    But version control system provides with a shared workspace and it continuously tells u who have made what kind of change or what has been changed.
+   So with version control system, collaboration is a way between all developers and u can visualize everyones work properly and as a result ur project wil 
+always evolve as a whole from the start and it will save a lot of time for you because there wont be much conflicts because if developer1 will see that he has already made some changes so he wont go for that.
+
+2. Storing versions
+      Saving version of ur project after you have made changes is very essential and without a version control system it can actually get confusing. 
+     When you have version control system you dont have to worry about how much u need to save or how u name them or what exactly different between each version because version control system always acknowledges that there is only one project so when u r working on ur project there is only one version on ur disk and all the changes that u made in the past are all neatly packed inside the version control system and if u want to go back to previous version and want to revert back all changes we made we can do with version control system because it is storing all ur version and we can revert back.
+
+3. Backup
+     version control system provides with backup, we have a central server where all the project files are located and apart from that every developers has local copy of all files present in central server inside their local machine which is known as local copy. The developers will actually fetch all the project files from central server and store it in the local machine and after they are done working they actually transfer all the files back into central server.
+   So everytime we always have a local copy in your local machine at times if central server is crashed also all developers are maintaining local copy the same exact copy present in central server. So it is very reliable when you have a version control system because u r always going to have backup of all ur files.
+
+4. Analyze my project
+      Because when you have finished ur projects u want to know how ur project is actually evolved so that u can make analysis of project and know what u have done better or what could have improved in ur project so u need some kind of data to make an analysis and want to know what is exactly changed and when was it change and how much time did it take and version control system provides with all the information because every time you change something version control system provides u with the proper description of what was changed and when was it changed.
+
+
+Version Control Tools
+1. GIT
+2. CVS (Concurrent Version System)
+3. Subversion
+4. Mercurial
+
+CVS and Subversion dosent have any local copy all the developers will directly work with central copy
+
+Git & GitHub
+   In distributed version control system we have a central repository and we have local repository as well and every of the developers at first make the changes in their local repository and after that they push those changes into central repo and all they update their local repo with all the new files that are pushed into the central repo by pull operation.
+   GitHub is central repo and git is local repo.
+Git is a version control tool that will allow you to perform push data to central repo and pull data from central repo to local repo. GitHub it is a code hosting platform for version control collaboration so github is just a company that allows you to host ur central repo in a remote server 
+
+
+What is GIT? - developed in unix platform
+     It is a distributed version control tool and it supports distributed nonlinear workflow. So git is the tool that actually facilitates all the distributed version control system benefits because it will provide you to create a local repo in ur local machine and it will help you to access ur remote repo to fetch files from there or push files into repo.
+
+What is a repository?
+   It is a directory or storage space where all projects can live. It can be local to a folder on ur computer like ur local repo or remote repo.
+
+GIT always refers the latest version which is called pooling repository, head pointer always point the latest commit version and reset command will change from one version to another version
+
+1. Create your central repository on Github
+    Now we will host our central repository on github so for that we need an account in github and for local repository we have to install git in ur system.
+    If u are working on a completely new project, just use
+     >git init
+  - to create ur repository 
+     >git clone
+   - to join existing project 
+
+1. create account in github for central repo
+2. create demo folder inside c:\ for local repo
+      a. > git init 
+           - initialize git repo created with .git
+      b. To link the repo for push and pull purpose, for that we need to add origin using
+      > git remote add origin "reponame"
+      c. To fetch files from repo in local machine using 
+      >git pull origin master
+      d. To push the files into repo using 
+       >git push -u origin master
+
+Git has an intermediate layers that resides between ur workspace and your local repository.Now when you want to commit changes in ur local repo u have to add those files in the index first, this is the layer between ur workspace and local repo, if ur files are not in the index u cannot make commits. 
+   To add files in the index using 
+       >git add
+   To check which files are in the index or not
+       >git status
+   After u added the changes in the index, use commit to make changes in local repo
+       > git commit
+Actually commit is a kind of object which is actually a version of ur project.
+1. create demo1.txt inside demo folder which has content like "First File". To check what file is present in index use
+     >git status 
+ --display demo1.txt (untracked file which is not added in index)
+2. To add demo1.txt in index,use
+     >git add demo1.txt
+3. To commit the changes to remote repo using 
+     >git commit -m "Adding first commit"
+4. create demo2.txt,demo3.txt inside demo folder with some content
+5. >git status
+   --displays demo2.txt,demo3.txt not in index
+6. Go back to demo1.txt and do some modification
+7. Once again give >git status
+   -- it displays all 3 files
+8. To add multiple files in index using
+   >git add -A
+9. >git status -- add all files in index
+10. To commit multiple files all together
+   >git commit -a -m "adding all files together"
+11. To see all commit log 
+   >git log
+
+Parallel Development - Branching
+     Branches are pointers to a specific commit. Lets say u r working on the master branch and u have just made a change and u decided to add some new features onto it. 
+     You want to work on the new feature individually or you dont want to interfere with the master branch,if u want to separate that u can actually create a branch from this commit.
+Two types
+1. Local branches are create in ur workspace that is only going to work with ur files in ur local repo 
+2. Remote tracking branches are the branches that is going to connect ur branches from ur local repository to ur central repo  
+
+1. Right now we are in master branch, to create new branch use
+  >git branch firstbranch
+Now this will contain all files that are present in master branch since it is originated from the master branch 
+2. To switch to newly created branch use
+   >git checkout firstbranch
+Now we can work in firstbranch
+3. Create two files demo4.txt in demo folder with some content
+4. Now we commit these changes using
+    >git add demo4.txt
+    >git commit -m "making changes in firstbranch"
+Now demo4 is change in firstbranch not in master branch 
+5. To list the files in firstbranch 
+     >ls
+Now it will contain all files
+6. Now we going back to master branch using
+    >git checkout master
+It will switch to master branch
+7. To list the files use
+    >ls
+Now it will contain demo1,demo2,demo3 except demo4
+
+
+Merging
+   If u are creating branches and u are developing a new feature and u want to add that new feature, u have to do an operation called merging.
+  Merging means combining the work of different branches altogether.
+1. Now we want to combine demo4 from firstbranch to master branch. One important thing is we want to move from firstbranch to master, so master is destination and we should be in master branch
+   >git merge firstbranch
+2. To list all files
+    >ls
+Now u can see demo4 will be added in master branch with other files
+
+3. Firstbranch is still separate, now we go to back to firstbranch and do some changes it will not affect master branch until u merge it. Go back to firstbranch
+   >git checkout firstbranch
+
+4. Modify the contents of demo4.txt, and commit all the changes
+   >git commit -a -m "modifying demo4"
+5. >cat demo4.txt
+  -- display the modified content 
+6. Go back to master branch
+    >git checkout master
+7.Master branch also contains demo4.txt, to view 
+     >cat demo4.txt
+--But it will display old information, because the modification has not affected in master branch, now we want to merge the info into master branch 
+    >git merge firstbranch
+
+To delete the branch we use
+    >git branch -d firstbranch - it will show errors if there are some unmerged changes
+    >git branch -D firstbranch - not safe because it will delete the branch even there are some unmerged changes also 
+
+>git checkout -b newbranch - will create and checkout to new branch 
+
+Difference between git pull and git fetch?
+    git pull is actually pulls all the new files or the changed files from a central repo and it directly places them or connects them into ur master branch
+    git fetch is just pulls or fetches all changed files or new files form the central repo but actually stored in a different branch which is not connected with ur current workflow so if u r doing git fetch make sure u do git merge
+
+8. Rebasing
+     It is another kind of merging, both are used to integrate changes from one branch into another. 
+   If u see the workflow diagram, we have master branch and firstbranch when u r doing rebasing instead of creating a similar commit which will have two parent commit, rebasing actually places the entire commit history of ur branch on to the tip of the master.
+  The major benefit of rebase is that u get much cleaner project history so to reduce the number of branches, because have so many branches together might get confused 
+
+1. Go to firstbranch using
+    >git checkout firstbranch
+2. Create demo5.txt,demo6.txt inside demo folder with some content
+3. Add both files in index
+    >git add -A
+4. Commit the changes
+    >git commit -a -m "Adding for rebasing"
+5. To list all files in firstbranch
+    > ls
+6. Go back to master branch using
+    >git checkout master
+    > ls
+  -- it will display only 4 files
+7. Now to merge demo5,demo6 we use rebase which does same like merge
+    >git checkout firstbranch
+    >git rebase master
+ -- It shows firstbranch is upto date because whatever is in master branch is already there in first branch and no new files to be added 
+8. Go back to master branch
+     >git checkout master
+     >git rebase firstbranch
+--Now all work of firstbranch has been attached to the master branch and it  has been done linearly there was no need new set of commits and u can see all the files in master branch, so rebasing have merged all the work of my firstbranch into master branch but only thing is happened in linear way, so what commit we did in firstbranch actually got reattached to the head in the master.  
+
+9. To push all info to central repo using push
+  >git push origin master
+
+Reverting
+   If we want to revert to previous version 
+1. Create demo7.txt inside demo folder with some content
+2. Add to index using 
+     >git add demo7.txt
+3. Commit the changes
+   >git commit -m "revert file"
+4. Now modify some content in demo7.txt
+5. Commit this file again
+   >git commit -a -m "revert commit"
+6. Now if we want to revert back to previous version 
+   >git log
+--display all commit log
+7. Copy the first 8 digit of commit log of version1 
+   >git checkout "8 digit commit" demo7.txt
+8. >cat demo7.txt
+   -- it will contain the old info
+
+
+Git Merging and Rebasing
+    In Git there are 2 ways to integrate changes from one branch to another. To push the data from child to master branch
+    For example, u have 2 branches in project and u want to merge the changes we have 2 ways
+1. git merge       2. git rebase
+
+Steps for merging
+A. Open git bash
+    1. >mkdir gitdemo1
+    2. >cd gitdemo1
+    3. >git status
+         - It says git is not a repository
+    4. >git init
+         - Initialized empty git repo
+    5. >git status
+    6. Create m1.txt with some content inside gitdemo1 folder
+    7. >git status
+          - no commit yet
+    8. > git add .  -- It will add file but not commited
+    9. > git commit -m "added m1.txt"
+   10. > git status -- nothing to commit
+   11. > git log  -- added m1.txt
+         -- Now we are in master branch with m1
+   12. Now we add new branch called feature
+       > git branch feature
+   13. Switch to feature branch we use
+       > git checkout feature
+   14. Now we are in feature branch, to check
+       > git status -- it says it is in branch feature
+   15. Create f1.txt file inside gitdemo1
+   16. > git status 
+       -- unchecked file
+   17. To add file to git 
+       > git add f1.txt
+   18. > git status
+         - File will added and we need to commit
+   19. > git commit -m "added f1.txt"
+   20. To check log
+         > git log
+     - We can see 2 commits
+    21. To switch to master branch 
+      > git checkout master
+    -- when u see the folder, u cant see f1.txt, as it is not in master branch
+    22. > git status
+         - on master branch
+    23. Now create m2.txt inside gitdemo folder in master branch 
+    24. > git add .
+    25. > git commit -m "added m2.txt"
+    26. > git log
+        -- U can see 2 commits in master branch
+    27. Now we want to update all changes from master branch to feature branch. Now we checkout to feature branch
+    > git checkout feature 
+    28. > git merge master
+       -- Now gitdemo1 folder will contain m2.txt along with m1 and f1 files
+    29. > git log
+    - shows the history like m1.txt,f1.txt, then m2.txt because first we commit m1, then f1 and then m2.txt
+
+Steps for rebasing
+   1. >mkdir gitdemo2
+   2. >cd gitdemo2
+   3. > git init
+   4. > git status - on branch master
+   5. create m1.txt inside gitdemo2
+   6. > git add .
+   7. > git commit -m "added m1.txt"
+   8. > git log   -- added m1.txt in master
+   9. > git branch feature
+  10. > git checkout feature
+  11. create file f1.txt 
+  12. > git add .
+  13. > git commit -m "added f1.txt"
+  14. > git log    -- we have 2 commits f1.txt, m1.txt
+  15. > git checkout master
+     - As we switched to master, f1.txt will not be there
+   16. create m2.txt
+   17. > git add .
+   18. > git commit -m "added m2.txt"
+   19. > git log
+       - shows 2 commits m1.txt and m2.txt
+   20. > git checkout feature
+   21. Now to update the changes from master to feature branch we can use git rebase also
+    > git rebase master
+  -Now we can see f1.txt also added from feature to master branch
+    22. > git log
+   - we can see added m1.txt, then added m2.txt, then added f1.txt
+
+In git merge, we can see history we can see added m1.txt - first commit  made in master
+added f1.txt - second commit made in feature 
+added m2.txt - after coming from merge 
+
+In Git rebase, it is very linear (ie) added m1.txt, added m2.txt, added f1.txt. So in rebase f1 commit goes to tip of latest commit in master.
+
+
+git merge
+   1. Is a non destructive operation
+   2. Existing branches are not changed in any way
+   3. Creates a new merge commit in the feature branch
+
+git rebase
+   1. Moves the entire branch to begin on the tip of the master branch
+   2. Rewrites the project history
+   3. we get much cleaner and linear project history 
+
+   
+GIT commands
+1. Create an account in GitHub/BitBucket
+2. Create an new repository  which contains one master branch, when final project which everything is working then keep it in master branch. During the development phase we have to create subbranch  
+   DemoRepository 
+3. create new file in repo - demo.txt - commit
+4. Now to get that file in local computer
+    - create a new folder - GIT
+    > cd GIT
+    GIT> git clone "repo name"
+    GIT> cd DemoRepository
+    DR> dir
+5. To show remote version 
+    DemoRepository>git remote -v
+Now whatever we push it will goto this repo
+
+6. To display complete configuration
+       > git config --list
+
+7. In master we keep only original file, to display all branch 
+      > git branch  
+It will display main which is master branch and * indicates we are in main branch
+
+8. If we plan to do development we keep it in dev branch and testing means keep it in test branch and once everything is completed then we merge into master branch. To create new branch use
+    > git branch branchname ------ > git branch new_branch
+To list newly created branch we use
+    > git branch 
+         * main
+           new_branch
+   Now the head pointer points to master branch 
+
+9. To move from one branch to another branch 
+    > git checkout new_branch 
+   To list all branch
+    > git branch
+         main
+       * new_branch
+
+10. Now create a new file in new_branch
+     >type nul>MyFile.txt
+    Open the file created
+     >MyFile.txt
+    Type some text in that file
+
+11. To check the status of the file
+        > git status 
+             - In red it indicates that is not in staging stage (ie) in local repo 
+
+12. To add the file in the new_branch
+        > git add .
+        > git status 
+             - In green it indicates that is in staging stage (ie) in local repo 
+
+13. Now we commit the file in remote repo branch
+       > git commit -m "Branch commit"
+
+14. Now we want to push the file to new_branch then
+      > git push --set-upstream origin new_branch 
+which prompt for username and password
+Goto Github and check in branch in repository. Now new_branch will contain MyFile.txt as well as copy of master branch too
+   From wherever we taking branch, whatever the data available in parent branch will be copied to subbranch.
+
+15. Instead of creating new branch and checkout to that branch separately we can create in single command using -b
+    >git checkout -b test_branch 
+         - It will create a new branch called test_branch and switch to that test_branch 
+    > git branch 
+         - to check in which branch 
+
+16. To rename the old branch to new branch name
+     > git branch -m test_branch testing_branch
+    Now check whether the name is renamed by
+      > git branch
+
+17. To delete the branch
+     > git branch -D testing_branch 
+ We should not be in the current branch that we are deleting, whether it is merged or not merged it delete  
+ 
+18. To delete the branch
+     > git branch -d testing_branch 
+ It will prompt the message, before merge the data to another branch then it will delete
+    
+19. >git ls-files
+        - to check the files in the present branch 
+
+
+
+Merge Conflicts
+   We have created Github repository and we have 2 developers to work on same repository at the same time 
+
+1. Create merge-conflict repository in GitHub, create 2 files readme.txt and myInfo.txt with 
+    Hello
+    I am developer
+    I am from Chennai
+    I like travelling
+2. We create 2 folders developer1 and developer2, now both guys working on same repo called merge-conflict 
+   Initially developer1 thought that code contains some bug and want to update the code for that he clone the repo
+
+3. developer1> git clone "reponame"
+4. After cloning go into merge-conflict folder
+5. developer1> git branch 
+       which contains one branch that is master branch 
+6. Usually developer dosent work on the master branch so they create new branch and do changes over that
+   Create new branch called dev1branch
+developer1> git branch dev1branch
+
+7. Check for available branch
+  developer1> git branch
+      dev1branch
+    * main
+
+8. Now switch to dev1branch using
+  developer1> git checkout dev1branch 
+  developer1> git branch
+      * dev1branch
+        main
+
+9. We can list of files using ls
+  developer1> ls
+      myInfo.txt    readMe.txt
+  developer1> vi myInfo.txt
+Press i - change the content after that esc :wq
+    Hello
+    I am developer1
+    I am from Delhi
+    I like travelling
+
+10. developer1> git status
+       - we modified myInfo.txt on dev1branch
+
+11. developer1> git add .
+    developer1> git commit -m "updated myInfo file by developer1"
+         - Now we committed the file in local repository
+    developer1> git status
+         - Now branch is clear everything is committed
+
+12. Now one more developer see this code and feel that it is has bug since developer1 is not yet committed. Now he also cloning the code 
+     developer2> git clone "reponame"
+After cloning go into merge-conflict folder
+     developer2> ls 
+       myInfo.txt      readMe.txt
+
+13. He works on master branch itself and edited myInfo which contains old info only, since developer1 is not committed
+      developer2> vi myInfo.txt
+            Hello
+            I am developer2
+            I am from Mumbai
+            I like travelling
+
+14. developer2> git status
+       - we modified myInfo.txt on master
+
+15. developer2> git add .
+    developer2> git commit -m "updated myInfo file by developer2"
+         - Now we committed the file in master branch itself
+    developer2> git status
+         - Now branch is clear everything is committed
+
+16. Now we push changes to remote repo
+    developer2> git push origin main
+
+Developer1 and Developer2 pulled the same code and updated the same line of code. But Developer1 has taken the code and created new branch and updated the code on new branch and yet to commit his changes on master branch. Once it goes to master branch, from master branch he is going to push to remote repo. Meantime Developer2 observed that some problem so he cloned the repo and committed his changes to remote repo.
+
+17. Now check GitHub repo, it will be changed the content by developer2
+
+18. Now developer1 want to push his changes, so he switching back to master branch from dev1branch
+    developer1> git checkout main
+
+19. Before pushing the code, he pull the latest code then merge the code from dev1branch to master branch 
+   developer1> git pull
+      - which pulled the changes there are 4 changes ++(2 lines added) and --(2 lines deleted)
+      - Now he got latest code from the master branch
+
+20. To list all files
+     developer1> ls
+        myInfo.txt     readMe.txt
+
+21. To view the contents of the file which display the latest content
+     developer1> cat myInfo.txt
+            Hello
+            I am developer2
+            I am from Mumbai
+            I like travelling
+
+22. Now we switch to dev1branch using
+     developer1> git checkout dev1branch
+
+23. To view the contents of the file which display the latest content
+     developer1> cat myInfo.txt
+            Hello
+            I am developer1
+            I am from Delhi
+            I like travelling
+Now we want to commit the changes from dev1branch to master branch, so switch to master branch
+     developer1> git checkout main
+
+24. Now we want to merge the changes from dev1branch to master branch
+     developer1> git merge dev1branch
+Auto-merging myInfo.txt
+CONFLICT (content): Merge conflict in myInfo.txt
+Automatic merge failed; fix conflicts and then commit the result.
+
+Now we can see there is conflict in myInfo, we can fix those conflicts
+
+25. Now we open myInfo.txt
+     developer1> cat myInfo.txt
+Hello
+<<<<<<< HEAD
+I am developer2
+I am from Mumbai
+=======
+I am developer1
+I am from Delhi
+>>>>>>> dev1branch
+I love travelling
+
+Your file is updated and given HEAD which says what is the changes are same in both file. In first and last line there is no conflict but inbetween we have conflict 
+   In realtime, the group of people who have created conflict and who have updated the code, they sit together and discuss which changes are valid to fix this particular issue and update the code according to their discussion and push the changes
+   In our case both developer sit and discuss and come to conclusion to keep their name as developer1 and city as delhi
+   developer1> vi myInfo.txt
+      Hello
+      I am developer1
+      I am from Delhi
+      I love travelling
+
+26. developer1> git status
+       - Now we have updated myInfo.txt
+27. developer1> git add --all .
+    developer1> git commit -m "Updated myInfo"
+    developer1> git push 
+
+28. Goto Github and check whether the data is changed.
+
+
+Git Hooks
+   - Git Hooks allow you to run ur own scripts whenever important events occur in the Git life cycle like committing, merging and pushing
+   - Git hooks are a built in feature,no need to download anything
+   - Git hooks are run locally
+
+Where hooks are present?
+   - whenever u clone, .git folder is created, there will a hooks folder under that many pre compiled hooks will present 
+    > git clone "reponame"
+    > ls -la
+    > cd .git
+    > ls
+    > cd hooks
+
+  - Hooks ar not checked in source control
+  - Where these hooks come from - Basically we you install Git we can see all templates related to git in /usr/share/git-core/templates. When we git clone it copy all templates to .git/hooks folder 
+
+
+
+Practical
+
+1. create directory and move to that directory
+2. git init  - creates local git repository (private copy of shared repo)
+3. create a.txt file with "Hello world", now we move that file to staging area
+3. git add .  - add all files to staging area, only files present in staging area used for commit
+
+4. git commit -m "Initial commit" - move all files frm staging area to local repo
+5. git status - returns the current state of repo
+6. create b.txt file 
+7. git add b.txt
+8. git status
+9. git commit -m "Initial commit" 
+
+Branching 
+   - used to create another line of development, by default master branch
+   - used to work on new feature 
+   - You want to work on the new feature individually or you dont want to interfere with the master branch,if u want to separate that u can actually create a branch from this commit.
+   - Once are development is complete, it is merge with master and delete the branch. Whenever we commit it always refer to latest commit
+
+
+Working with remote repository
+1. create local copy of remote repo 
+  >git clone "git url"
+2. create directory and inside that dir
+3. >git clone "git url"
+4. >ls
+5. Go into that folder
+6. ls
+7. edit some file in github
+8. Now we want to make changes in my copy in the directory
+     >git pull origin master
+9. ls - now u go and see the new data
+10. git add .
+11. git commit -m "remote commit"
+12. git push origin master
+13. check in github account whether the file is edited 
+
+git stash
+   - to save changes made when they are not in state to commit them to repository 
+   - Imagine working on new features which is not complete but urgent bug need attendion then we use git stash
+
+1. create new file a.txt and add data
+2. git add .
+3. git status 
+      - new file in staging area and need to commit
+4. Add uncommented changes to stash 
+      >git stash -u
+5. git status 
+6. git stash list
+7. git stash show
+8. I have fixed the bug and work on code before fixing the bug 
+   >git stash apply
+9. git status
+
+
+git log and git revert
+1. create directory and inside the dir
+2. git init
+3. create a1.txt file
+4. git add .
+5. git commit -m "message"
+6. git log - display commit histroy for the repo
+7. git log --author=""
+8. git log -before=""
+9. edit a1.txt
+10. git add .
+11. git commit -m "message1"
+12. Now we want to go back to previous commit 
+  >git log --oneline
+which display commit id
+13. git revert "commit id"
+14. Now if we check a1.txt, it will have only old contents
+15. git revert HEAD
+   - which will go to last commit that is nothing but previous revert, so now we can display all content of a1.txt 
+
+
+
+
+
+
+
+
+
