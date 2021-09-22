@@ -1114,3 +1114,1325 @@ Collection<Integer> secondBunch = new HashSet<>();
 
 
 
+
+
+Soap UI
+   - It is open source tool to perform any kind of API testing related to SOAP request as well as RETS request 
+   - SOAP is used by large cooperation like Apple, Microsoft, Cisco, Oracle, HP, NASA, ebay, MasterCard, Intel, FedEx etc, so SOAP is basically made for large enterprise appl
+   - It basically provides an easy interface and provides couple of drag and drop operations which will definitely help to create any kind of API, collection of worl with api testing
+   - It is preferred for both SOAP and REST api 
+   - SOAP Ui is a  heavy full fledged tool providing facility of data driven testing, since it supports programming language like Groovy  where u have more leverage over the tool
+   - If u r not starter or u have advance level of knowledge expecially related to apis definitely go with SOAP UI and again totally depend on ur company level
+
+Postman
+   - It is not api testing tool, it is api development suite and it provides lot of different features like sharing your collection(set of apis), performing api testing, monitoring, documentation  of apis 
+   - Easy for sharing reports, it is not made for large appl, it is considered to be work only with rest apis most of the time, but it will support soap request also in postman 
+   - Postman is mostly made for small based companies 
+
+			SoapUI			Postman
+1. REST API testing	  yes			   yes
+2. Soap API Testing	  yes			   no
+3. Scripting lang	Groovy,js           Javascript
+
+
+SoapUI 
+
+What is SOAPUI?
+   - API Testing Tool
+   - For manual and automation testing of SOAP and REST APIs
+   - Cross-platform tool
+   - Built entirely over Java platform
+   - uses Swing for GUI
+
+Why to use SoapUI
+1. To create quick and efficient API tests
+2. To create API functional, performance and security tests
+3. To create API Testing automation framework
+
+
+Downloads and Installation
+1. https://www.soapui.org/downloads/latest-release/
+   - Download SOAP UI Open scource
+2. create empty project
+3. Right click project - Click New Rest Service From URI
+4. Under URI: http://thomas-bayer.com/sqlrest/CUSTOMER/10
+   Click OK
+We can see Request Editor and Response editor
+5. Click Run (green color icon) - we can see the response on response editor, where we can see response in xml, json and html format 
+6. In the down we can see log section 
+
+
+OCP - 1Z0-819 
+
+To create jar file 
+   >jar -cvf myFile.jar
+
+To run Jar file
+   >java -cp ".;c:\folder\myFile.jar" Animal(mainclass name)
+
+
+package packagea;
+public class ClassA{
+
+}
+
+package packageb;
+import packagea.ClassA;
+public class ClassB{
+   PSVM(){
+     ClassA a;
+     System.out.println("Got it");
+   }
+}
+
+>mkdir classes
+   - create classes folder
+
+>javac -d classes packagea/ClassA.java packageb/ClassB.java
+   -Move class file to classes folder
+
+To run :
+>java -cp classes packageb.ClassB
+           or
+>java -classpath classes packageb.ClassB
+           or
+>java --class-path classes packageb.ClassB
+
+
+Options u need to know for exam while compile:  javac
+
+Option		          Description
+1. -cp               Location of classes needed to --classpath compile
+--class-path
+
+2. -d <dirname>      Directory to place generated class file
+
+3. -m <modulename>   Module name to compile
+--module <name>
+
+4. -p <path>         Location of jars in module prg
+--module-path <path>
+
+5. --module-source-path   Specify the location of module source files
+
+
+Options u need to know for exam while running: java
+
+Option 				Description
+1. -cp <classpath>       Location of classes needed to run the program
+-classpath <classpath>
+--class-path <classpath>
+
+2. -p <path>        Location of Jars in modular prg
+--module-path <path>
+
+3. -m <name>        Module name to run
+--module <name>
+
+4. -d              Describe the details of a module
+--descrobe-module
+
+5.--list-modules   List observable modules without running the program
+
+6.--show-module-resolution      Shows module when running program
+
+
+Option u need to know for exam for archieving: jar
+
+Option 				Description
+1. -c                 Create new JAR file
+  --create
+
+2. -v		      Prints details when working with jar
+   --verbose
+
+3. -f <filename>           JAR filename
+--file <filename>
+
+4. -C <directory>        Directory containing files to be used to create JAR
+
+5. -d               Describe the details of module
+--describe-module
+
+
+Stack - methods, local variable, reference variables
+Heap - Object, string pool
+
+
+We can store char in any datatype
+
+Datatype:
+
+boolean b1=true;  
+
+byte b=1;
+b='a';  //97
+
+short s=1;
+s='a';
+s=b;
+b=s;   //error
+
+int i=1;
+i='a';
+i=b;
+i=s;
+b=i;  //error
+s=i;  //error
+
+
+8E2 * 0 + 8E1 * 1 + 7E1 * 1
+64 * 0 + 8 * 1 + 7 * 1 = 15
+
+Literal and Underscore character
+   Add underscore except
+  1. at the beginning of literal
+  2. end of literal
+  3. right before decimal point 
+  4. right after decimal point
+
+int million=1_000_000; //1000000
+int million=_1000.00;  //error
+int million=1000.00_;  //error
+int million=1000_.00;  //error
+int million=1000._00;  //error
+int million=1_00_0.0_0;  //1000.0
+
+Identifier
+    - name of variable, method, class, interface, pkg
+    - must begin with letter, $ or _
+    - Include numbers but not start with them
+    - single underscore is not allowed
+    - no keyword
+    - Method and variable names are written in camelCase with first letter in lowercase
+    - Class and interface are written with CamelCase
+    - Constant, enum,static, final are capitial case
+
+long l1=1;
+l1=2147483648l;
+l1='a';
+
+float f=1;
+f=2147483648L;  //2.14748365E9
+f=3.14f;
+f='a';
+
+double d=1;
+d=2147483648L;   //2.14748365E9
+d=3.14f;
+d=3.14;
+d='a';
+
+char c='a';
+c=1;
+
+
+Autoboxing - convert primitive to wrapper class
+Unboxing - convert wrapper class to primitive
+
+Order of Precedence
+POST
+PRE
+Unary
+Multi Div
+Add Sub
+Shift Relational Equalto Logical Shortcirucit Ternary Assignment
+
+public class Primitive {
+
+    //autoboxing in primitive types is allowed in literals
+    long primitive() {
+        boolean bo = true; //false
+
+        byte b = (byte) 1;
+        b = (short) 1;
+        b = 1;//int (-128 to 127)
+        b = (int) 1L;
+        b = (int) 1.2345f;
+        b = (int) 1.245;
+        b = 'a'; //97
+
+        short s = (byte) 1;
+        s = (short) 1;
+        s = 1; //int (-32,768 to 32,767)
+        s = (int) 1L;
+        s = (int) 1.2345f;
+        s = (int) 1.245;
+        s = 'a';
+
+        s = b;
+//        b = s;
+
+        int i = (byte) 1;
+        i = (short) 1;
+        i = 1; //(-2,147,483,648 to 2,147,483,647)
+        i = (int) 1L;
+        i = (int) 1.2345f;
+        i = (int) 1.245;
+        i = 'a';
+
+        i = b;
+        i = s;
+//        b = i;
+//        s = i;
+
+        long lo = (byte) 1;
+        lo = (short) 1;
+        lo = 1;
+        lo = 2147483648L;
+        lo = (long) 3.14f;
+        lo = (long) 3.14;
+        lo = 'a';
+
+        float f = (byte) 1;
+        f = (short) 1;
+        f = 1;
+        f = 2147483648L;//2.14748365E9
+        f = 3.14f;
+        f = (float) 3.14;
+        f = 'a';
+
+        double d = (byte) 1;
+        d = (short) 1;
+        d = 1;
+        d = 2147483648L;//2.14748365E9
+        d = 3.14f;
+        d = 3.14; //double
+        d = 'a';
+
+        char c = 'a'; //97
+        c = (byte) 1;
+        c = (short) 1;
+        c = 1; //int (0 to 65,535)
+        c = (short) 1L;
+        c = (short) 3.14f;
+        c = (short) 3.14;
+        return 1L;
+    }
+
+    public Long wrapper() {
+        Boolean bo = false; //Autoboxing
+        boolean boo = Boolean.valueOf(true); //unboxing
+
+        //Before Java 5.0
+        bo = Boolean.valueOf(true);
+        bo = Boolean.valueOf("FALSE");
+
+        boo = Boolean.parseBoolean("false");
+
+        Byte b = (byte) 1;
+        b = (short) 1;
+        b = 1; //int
+        b = (byte) 1L;
+        b = (short) 1.2345f;
+        b = (int) 1.245;
+        b = 'a';
+
+        Short s = (byte) 1;
+        s = (short) 1;
+        s = 1;
+        s = (int) 1L;
+        s = (int) 1.2345f;
+        s = (int) 1.245;
+        s = 'a';
+
+        Integer i = 1;
+        i = (int) 1L;
+        i = (int) 1.2345f;
+        i = (int) 1.245;
+        i = (int) 'a';
+
+        Long lo = (long) 1;
+        lo = 1L;
+        lo = (long) 3.14f;
+        lo = (long) 3.14;
+        lo = (long) 'a';
+
+        Float f = (float) 1;
+        f = 3.14f;
+        f = (float) 2147483648L;//2.14748365E9
+        f = (float) 3.14;
+        f = (float)'a';
+
+        Double d = (double)1;
+        d = (double) 1L;
+        d = (double)3.14f;
+        d = 3.14;
+        d = (double)'a';
+
+        Character c = 'a';
+        c = 1; //int (0 to 65,535)
+        c = (int)1;
+        c = (byte) 1L;
+        c = (short) 3.14f;
+        c = (char) 3.14;
+
+        return 1L;
+    }
+}
+
+boolean monkey = true == 3; //error
+boolean ape = false != "Grape";  //error
+boolean a = 10.2 == "koko"; //error
+
+
+String and StringBuilder
+
+https://github.com/mhussainshah1/HandleStrings/blob/master/StringPool.jsh
+
+String Pool - intern pool
+    There are 2 parts of memory, stack and heap. Stack is part of memory which loads the method data in form of stack one on the other 
+    So first method load in stack is main(), in main() if we initialize any local variable or make any object, then local variable will go to stack and object in heap
+    Consider we have 3 string objects like
+String name="Fluffy";
+String name1="Fluffy";
+String name2=new String("Fluffy");
+
+       Stack                                 Heap
+      100 - name                                          String Pool
+      100 - name1                  Object                 100 - Fluffy
+      201 - name2                  201 - 100
+
+100,201 - memory address
+   So object reference name  will stay in stack and value will store in heap 
+   So whenever we create string without  new keyword it goes in the string pool and string pool is a location in JVM contains reusable literal values and constants for fast memory processing.
+       String name="Fluffy";
+       String name1="Fluffy";
+   So benefit of this if we make another string object and it has same value so instead of creating a new object it goes and check the string pool, if it is there then it provides the memory address to this reference, so both these objects point to same location in the memory 
+
+  String name2=new String("Fluffy");
+     So whenever we use a new keyword, compiler creates an new object in the memory for name2 and it first checks the string pool and if that string value is present it  copy the address of that string in that object as value and provide its memory address to the reference variable in the stack.
+
+String name="Fluffy";
+String name1="Fluffy";
+String name2=new String("Fluffy");
+name == name1;  //true
+name == name2; //false
+
+But at time of concatentation, consider we have
+
+String  name3="Fluf"+"fy";
+String name4="Fluf";
+name4 += "fy";
+
+So name3 and name4 will have same string "Fluffy" but one is pointing to String pool and other created the object.
+   name3 is determine at the compile time, the complete string is "Fluffy" and stored in string pool as address 100 will be stored (ie) to name.
+   But for name4, first time it is Fluf and Fluf goes to string pool, then we added "fy" and store back to name4 which is same like calling concat() which return string, so whenever we call a method so it creates a new object so name4 is not same because name4 created new object rather than going to string pool
+
+String name3="Fluf"+"fy";
+String name4="Fluf";
+name4 += "fy";
+name==name3; //true
+name==name4; //false
+
+String x="Hello World";
+String y=" Hello World".trim();
+x==y; //false
+   Because first x will store in string pool and y is called with trim() so it create new object so it refers different object 
+
+
+String s1="hello world";
+String s2=new String("hello world");
+s2=s2.intern(); //hello world, because it checks with string pool whether value already present so it copy the address of that value
+
+s1==s2; //true
+
+String s3="rat"+1;  //rat1 stored in string pool
+String s4="r"+"a"+"t"+"1"; //rat1 stored in string pool
+String s5="r"+"a"+"t"+new String("1"); //rat1 but new object created
+
+s3==s4; //true
+s3==s4.intern(); //true
+s3==s5; //false
+s3==s5.intern(); //true
+
+
+Local Variable Type Inference - Var
+    - It introduced in Java10 and purpose is to infer datatype at compile time. We can only use them in constructor, method and initializer block 
+    - var is keyword used as local variable in constructor, method, initializer block, loops. The value of var can change but type cannot change 
+    - var will check the value and assign the related datatype
+
+Important notes:
+    1. var can't declare without initial value. It is always initialized on same line or statment where it is declared
+    2. var can be declared in first like and initialized in next line, because it is compile of two lines however it is 1 statement 
+    3. var cannot be initialized with null value without a type 
+    4. var is not permitted in multiple variable declartion
+    5. var cannot be used to initialize array
+
+public class Main {
+    {
+        var num = 1.0;
+    }
+    Main(){
+        var name = "Main";
+    }
+    public static void main(String[] args) {
+       var size = 7;
+
+       for (var i = 0; i < 10; i++) {
+
+       }
+
+        for (var arg: args) {
+
+        }
+
+        size = 4;
+       //size = "five"; //error we cant change its datatype
+
+        //Can't do
+        //1. Same line
+//        var question;
+/*        question =1;
+        var answer;
+        if(size == 4){
+            answer = 2;
+        } else {
+            answer =3;
+        }*/
+
+        //Note 2
+        var silly
+                = 1;
+
+
+        //Note 3
+        //var n = null;  //error
+        var o = (String) null;    //here we specify type before null
+
+        var n = "my string";
+        n = null;
+
+        var m = 4;
+        //m = null;  //error
+
+        //Note 4 Compound Declaration
+//        var a = 2 , b = 3;
+//        int a, var b =3;
+
+        //Note 5 Array
+//        var prices = {9.95, 8.86};
+    }
+}
+
+
+    6. var cant be used in parameters, return type and fields
+
+public class VarKeyword {
+/*    var name = "Hello";
+    static var counter =0; //error
+    public VarKeyword(var name) {  //error
+        this.name = name;
+    }
+    public var getName() {  //error
+        return name;
+    }
+    public var setName(var name) { //error
+        this.name = name;
+    }*/
+}
+
+    7. var is reserved type name but not reserved word (ie) it can used as an identifier except as a class interface or enum name
+public class Var {
+    public void var(){
+        var var = "var";
+    }
+    public void Var(){
+        Var var = new Var();
+    }
+}
+
+/*class var{}
+interface var{}
+enum var{}*/
+
+Important Points
+
+1. Choose a variable name that provides useful information
+
+public class Guideline1 {
+    public static void main(String[] args) {
+        List<String> result = List.of("hello", "how", "are", "you", "?");
+
+        var stringsList = List.of("hello", "how", "are", "you", "?");
+
+    }
+}
+
+2. Minimize the scope of local variable 
+
+3. Consider var when the initializer provides sufficient information, so  here in below example right side provide sufficient information 
+
+public class Guideline3 {
+    public static void main(String[] args) throws IOException {
+        var outputStream = new ByteArrayOutputStream();
+        var reader = Files.newBufferedReader(Path.of(""));
+        var list = List.of("a", "b", "c");
+
+    }
+}
+
+4. Consider var to split chained or nested expression
+
+ List<String> strings = List.of("hello", "hello", "how", "are", "you", "?");
+
+    public Optional<String> getMaxEntry() {
+        return strings.stream()
+          .collect(groupingBy(s -> s, counting()))
+                .entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey);
+
+
+public class Guideline4 {
+    List<String> strings = List.of("hello", "hello", "how", "are", "you", "?");
+
+    public Optional<String> getMaxEntry() {
+        var collect = strings.stream()
+                .collect(groupingBy(s -> s, counting()));
+        var max = collect
+                .entrySet()
+                .stream()
+                .max(Map.Entry.comparingByValue());
+        return max
+                .map(Map.Entry::getKey);
+
+
+    }
+}
+
+5. Do not worry too much programming to the interface with local variable 
+
+public class Guideline5 {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list = new CopyOnWriteArrayList<>();
+        list = new LinkedList<>();
+
+        var list1 = new ArrayList<>();
+//        list1 = new CopyOnWriteArrayList<>();
+//        list1 = new LinkedList<>();
+    }
+}
+
+6. Take care using var with diamond or generic methods 
+
+public class Guideline6 {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+
+        var list1 = new ArrayList<>();//since we didnt give it ArrayList<Object>()
+        var list2 = new ArrayList<String>();
+
+        var list3 = new ArrayList<>(list);//since we pass list which is ArrayList<String>(), so list3 is ArrayList<String>()
+    }
+}
+
+7.Take care var with literals 
+
+public class Guideline7 {
+    public static void main(String[] args) {
+        //No issue with Boolean, character, long, String and Floating Point
+        var ready = true;//boolean
+        var ch = '\ufffd';//char
+        var sum = 0L;//long
+        var label = "wombat";//String
+        var f1 = 1.0f;//float
+        var d1 = 3.0;//double
+
+        //Whole number inferred as integer
+        byte flags = 0;
+        short mask = 0x7fff;
+        long base = 17;
+
+        var flags1 = 0; //int
+        var mask1 = 0x7fff;//int
+        var base1 = 17;//int
+
+        var flags2 = (byte)0; //byte
+        var mask2 = (short)0x7fff;//short
+        var base2 = (long)17;//long
+    }
+}
+
+var in Lambda Expression 
+    - Lambda expr can also be implicitly typed with var syntax
+           (var num) -> num+1;
+
+public class LambdaExpression {
+    public static void main(String[] args) {
+        Function<Integer,Integer> f = (var num) -> 1;
+
+//        var f1 = (var num) -> 1;
+
+        BiFunction<Integer,Integer,String> f2 = (@Notnull var a,var b) -> "Hello";
+    }
+}
+    - var can be used with annotation 
+           (@NotNull var a,var b) -> a+b;
+    - var can be used for non-denotable (anonymous class and intersection)
+
+public class NonDenotable {
+    public static void main(String[] args) {
+        //Anonymous Class
+        var productInfo = new Object() {
+            String name = "Apple";
+            int total = 0;
+        };
+        System.out.println("name = " + productInfo.name + ", total = " + productInfo.total);
+
+}}
+
+Cant do
+1. you cant mix var and non var parameters
+        (var a,Integer b)-> true;  //error
+        (var a,var b)-> true; //correct
+        (String x,var y,Integer z)->true; //error
+        (var x,var y,var z)->3.14159; //correct
+
+2. you cant mix var and explicit type parameters
+        (var x, y) -> "goodbye"; //error
+3. you cant omit parenthesis for single var parameter
+        var w-> 99;  //error
+
+
+Lambda Expression and Functional programming
+
+Deferred Execution - in lambda object will not be created unless we call the implementation of method
+
+
+Anonymous class			                 Lambda
+1. It is an inner class                     1. Lambda is static 
+It has an instance in memory                method in memory
+
+2. keyword this represent inner             2. keyword this 
+anonymous class                                represent enclosing class
+
+3. It can have more than                    3. only one method
+one method 
+
+public class ConvenienceMethod {
+    public static void main(String[] args) {
+        //Predicate
+        Predicate<String> egg = str -> str.contains("egg");
+        Predicate<String> brown = str -> str.contains("brown");
+
+//        Predicate<String> brownEggs = str -> str.contains("egg") && str.contains("brown");
+        Predicate<String> brownEggs = egg.and(brown);
+        System.out.println(brownEggs.test("eggbrown"));
+
+//        Predicate<String> otherEggs = str -> str.contains("egg") && !str.contains("brown");
+        Predicate<String> otherEggs = egg.and(brown.negate());
+
+        //Consumer
+        Consumer<String> c1 = x -> System.out.print("1: " + x);
+        Consumer<String> c2 = x -> System.out.println(",2: " + x);
+        Consumer<String> combined = c1.andThen(c2);
+        combined.accept("Annie");
+
+        //Function
+        Function<Integer, Integer> before = x -> x + 1;
+        Function<Integer, Integer> after = x -> x * 2;
+        Function<Integer, Integer> combined2 = after.andThen(before);
+        System.out.println(combined2.apply(3));//( 3 x 2) +1 = 7
+
+        combined2 = after.compose(before);
+        System.out.println(combined2.apply(3));//(3 + 1) x 2 = 8
+    }
+}
+
+
+Variable in lambda expression
+
+1. Parameter list
+
+What is type of x in below code?
+
+Predicate<String> p=x->true;   //string
+---------------------------------------------------
+public void whatAmI(){
+   test((var x)->x>2,123);   //x is integer
+}
+public void test(Predicate<Integer> c,int num){
+   c.test(num);
+}
+---------------------------------------------------
+public void counts(List<Integer> list){
+   list.sort((var x,var y)->x.compareTo(y));  //x is integer
+}
+
+
+2. Local variable inside lambda body
+       Cannot create a local variable with the same name as one already declared in scope
+
+(a,b) -> { int c=0; return 5;}  //correct
+(a,b) -> { int a=0; return 5;}  //error
+
+public void variables(int a){   //error 
+    int b=1;
+   Predicate<Integer> p1=a->{
+             int b=0;
+             int c=0;
+             return b==c;};
+}
+
+3. Variable Reference from Lambda body
+    Rules for accessing a variable from a lambda body inside a method
+
+Variable Type				Rule
+Instance Variable			Allowed
+Static variable 			Allowed
+Local variable			Allowed if effectively final
+Method parameter                Allowed if effectively final
+Lambda parameter		        Allowed
+
+Effectively final - value cannot change and dont need to explicitly declare final
+
+public class Closure {
+    private static String staticVariable;
+    private String instanceVariable;
+
+    public void instanceMethod(final String parameter) {
+        final String localVariable = "local";
+        staticVariable ="allowed";
+
+        Predicate<String> p = str -> (instanceVariable + parameter + localVariable + staticVariable).length() == 10;
+
+//        parameter ="not allowed";
+//        localVariable ="not allowed";
+
+        staticVariable ="allowed";
+        instanceVariable ="allowed";
+    }
+}
+
+
+Optional class
+
+public class MyOptional {
+
+    public static Optional<Double> average(int... scores) {
+        if (scores.length == 0)
+            return Optional.empty();
+
+        int sum = 0;
+        for (int score : scores) {
+            sum += score;
+        }
+        return Optional.of((double) sum / scores.length);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(average(90, 100));
+        System.out.println(average());
+
+        Optional<Double> opt = average(90, 100);
+        if (opt.isPresent())
+            System.out.println(opt.get());
+
+        //or
+        opt.ifPresent(System.out::println);
+
+        opt = average();
+//        System.out.println(opt.get());//NoSuchElementException
+
+        String value = "";
+        Optional o = (value == null) ? Optional.empty() : Optional.of(value);
+        //or
+        o = Optional.ofNullable(value);
+
+        opt = average();
+        System.out.println(opt.orElse(Double.NaN));
+        System.out.println(opt.orElseGet(Math::random));// () -> Math.random()
+//        System.out.println(opt.orElseThrow());//NoSuchElementException
+//        System.out.println(opt.orElseThrow(IllegalAccessError::new));//() -> new IllegalAccessError()
+//        System.out.println(opt.orElseGet(IllegalStateException::new));//Does not compile
+
+        opt = average(90, 100);
+        System.out.println(opt.orElse(Double.NaN));
+        System.out.println(opt.orElseGet(Math::random));
+        System.out.println(opt.orElseThrow());
+    }
+}
+
+
+Stream API
+    Sequence of data, it can be used only once
+Types:  Finite and infinite
+
+Lazy evaluation: delay execution until necessary - we pass lambda expr/method reference in the function and processor calls the method at its own
+
+https://www.rapid7.com/blog/post/2017/01/13/java-8-lazy-argument-evaluation/
+
+public class EagerVsLazyEvaluation {
+
+    static boolean compute(String str) {
+        System.out.println("executing...");
+        // expensive computation here
+        return str.contains("a");
+    }
+
+    static String eagerMatch(boolean b1, boolean b2) {
+        return b1 && b2 ? "match" : "incompatible!";
+    }
+
+    static String lazyMatch(Supplier<Boolean> a, Supplier<Boolean> b) {
+        return a.get() && b.get() ? "match" : "incompatible!";
+        //call function here - if first part returns false then other doesn`t execute
+    }
+
+    public static void main(String[] args) {
+        System.out.println(eagerMatch(compute("bb"), compute("aa")));//call function
+        System.out.println(lazyMatch(() -> compute("bb"), () -> compute("aa")));
+    }
+}
+
+When we call eagerMatch() it prints 
+executing...
+executing...
+incompatible!
+But when we call lazyMatch() it prints
+executing...
+incompatible!
+
+When it comes to lazyMatch(), we call a.get() goes to compute() and get false and && which is short circuit operator, so if one is false it wont execute the next one. So in eagerMatch() we have 2 method calls but in lazyMatch() it is 1 method call  and it happens only at execution 
+
+Intermediate vs Terminal operation
+Scenario		Intermediate     Terminal
+1. can exist multiple	    yes		    no
+times in pipeline
+
+2. Return type is stream    yes	 	    no
+
+3. Executed upon method     no              yes
+call
+
+4. Stream valid after       yes             no
+call
+
+
+Advanced Stream Pipeline Concept
+
+1. Linking streams to the underlying data
+
+public class Linking {
+    public static void main(String[] args) {
+        var cats = new ArrayList<String>();
+        cats.add("Annie");
+        cats.add("Ripley");
+
+        var stream = cats.stream();
+        cats.add("KC");
+        System.out.println(stream.count());
+    }
+}
+
+2. Chaining Optional - calls one optional to another optional 
+
+public class ChainingOptionals {
+    public static void main(String[] args) {
+        threeDigit_Java7(Optional.empty());
+        threeDigit_Java7(Optional.of(4));
+        threeDigit_Java7(Optional.of(123));
+
+        threeDigit_Java8(Optional.empty());
+        threeDigit_Java8(Optional.of(4));
+        threeDigit_Java8(Optional.of(123));
+
+        Optional<String> optional = Optional.of("123");
+        Optional<Integer> result = optional.map(String::length);
+        System.out.println(result.get());
+
+        Optional<Optional<Integer>> result1 = optional.map(ChainingOptionals::calculator);
+        System.out.println(result1.get().get());
+
+        Optional<Integer> result2 = optional.flatMap(ChainingOptionals::calculator);
+        System.out.println(result2.get());
+    }
+
+    private static Optional<Integer> calculator(String s) {
+        return Optional.of(s.length());
+    }
+
+    private static void threeDigit_Java8(Optional<Integer> optional) {
+        optional.map(n -> "" + n)
+                .filter(s -> s.length() == 3)
+                .ifPresent(System.out::println);
+    }
+
+    private static void threeDigit_Java7(Optional<Integer> optional) {
+        if (optional.isPresent()) {
+            Integer num = optional.get();
+            String string = "" + num;
+            if (string.length() == 3) {
+                System.out.println(string);
+            }
+        }
+    }
+}
+
+3. Collecting Results - used to group the results
+
+1. Collecting using Basic Collectors
+public class CollectingCollectors {
+    public static void main(String[] args) {
+        String result = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.joining(","));
+        System.out.println(result);
+
+        Double results = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.averagingInt(String::length));
+        System.out.println(results);
+
+        Set<String> result1 = Stream.of("lions","toads", "tigers", "bears")
+                .filter(s -> s.startsWith("t"))
+                .collect(Collectors.toSet());
+        System.out.println(result1);
+
+        TreeSet<String> result2 = Stream.of("lions", "toads", "tigers", "bears")
+                .filter(s -> s.startsWith("t"))
+                .collect(Collectors.toCollection(TreeSet::new));
+        System.out.println(result2);
+    }
+}
+
+2. Collecting into Maps using toMap()
+       To create map we need to specify 2 functions
+1). How to create key
+2). How to create value 
+
+public class CollectingMaps {
+    public static void main(String[] args) {
+        Map<String, Integer> map = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.toMap(s -> s, String::length));
+        System.out.println(map);
+
+        //reverse key into values
+        Map<Integer, String> map1 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.toMap(String::length, s -> s, (s1, s2) -> s1 + "," + s2));
+        System.out.println(map1);
+        System.out.println(map1.getClass());
+
+        TreeMap<Integer, String> map2 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.toMap(String::length,
+                        s->s,
+                        (s1, s2) -> s1 + "," + s2,
+                        TreeMap::new));
+        System.out.println(map2);
+        System.out.println(map2.getClass());
+    }
+}
+
+3). Grouping - group all the elements of the stream into Map using groupingBy()
+   groupingBy(Function f)
+   groupingBy(Function f, Collector c)
+   groupingBy(Function f, Supplier s,Collector c)
+
+public class Grouping {
+    public static void main(String[] args) {
+        Map<Integer, List<String>> map = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.groupingBy(String::length));
+        System.out.println(map);
+
+        Map<Integer, Set<String>> map1 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.groupingBy(String::length, Collectors.toSet()));
+        System.out.println(map1);
+
+        TreeMap<Integer, Set<String>> map2 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.groupingBy(String::length, TreeMap::new, Collectors.toSet()));
+        System.out.println(map2);
+
+        TreeMap<Integer, List<String>> map3 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.groupingBy(String::length, TreeMap::new, Collectors.toList()));
+        System.out.println(map3);
+    }
+}
+
+4. Partitioning - splitting list into 2 parts - true and false
+      partitioningBy(Predicate p)
+      partitioningBy(Predicate p, Collector c)
+
+public class Partitioning {
+    public static void main(String[] args) {
+        Map<Boolean, List<String>> map = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.partitioningBy(s -> s.length() <= 5));
+        System.out.println(map);
+
+        map = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.partitioningBy(s -> s.length() <= 7));
+        System.out.println(map);
+
+        Map<Boolean, Set<String>> map1 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.partitioningBy(s -> s.length() <= 7, Collectors.toSet()));
+        System.out.println(map1);
+
+        Map<Integer, Long> map3 = Stream.of("lions", "tigers", "bears")
+                .collect(Collectors.groupingBy(String::length, Collectors.counting()));
+        System.out.println(map3);
+
+    }
+
+
+Interface
+
+1. Interface contains public static final constant variable
+2. Interface contains abstract method
+3. Interface contains default,static method from Java8
+4. Interface contains private, private static method from Java9
+
+public /*abstract*/ interface InterfaceSummary {
+    /*public static final*/ int CONSTANT = 1;
+
+    /*public abstract*/ int abstractMethod();
+
+    /*public*/ default int defaultMethod(){abstractMethod(); privateMethod();staticMethod();  privateStaticMethod();return CONSTANT; }
+
+    private int privateMethod(){abstractMethod();defaultMethod();staticMethod();privateStaticMethod();return CONSTANT;}
+
+    /*public*/ static int staticMethod(){ privateStaticMethod(); return CONSTANT; }
+
+    private static int privateStaticMethod(){ return CONSTANT;}
+
+}
+
+Instance method in interface can access static method
+   - abstract
+   - default
+   - non static private
+
+Class/static method in interface cant access instance method (ie) static and static private 
+
+Interface Member access
+1. Accessible from default and private methods within interface defination
+    constant variable - yes
+    abstract method-yes
+    default method - yes
+    private method - yes
+    static method - yes
+    private static method - yes
+
+2. Accessible from static methods within interface defination
+    constant variable - yes
+    abstract method-no
+    default method - no
+    private method - no
+    static method - yes
+    private static method - yes
+
+3. Accessible from instance methods implementing or extending the interface - Refer WithInterface.java
+     constant variable - yes
+    abstract method-yes
+    default method - yes
+    private method - no
+    static method - yes
+    private static method - no
+
+4.Accessible outside interface without an instance of interface - Refer WithoutInterface.java
+     constant variable - yes
+    abstract method-no
+    default method - no
+    private method - no
+    static method - yes
+    private static method - no
+
+
+public class WithInterface implements InterfaceSummary{
+    @Override
+    public int abstractMethod() {
+        defaultMethod();
+        InterfaceSummary.staticMethod();
+        return CONSTANT;
+    }
+}
+
+
+public class WithoutInterface {
+    public int instantMethod() {
+        InterfaceSummary.staticMethod();
+        return InterfaceSummary.CONSTANT;
+    }
+}
+
+
+Create and use Enumeration
+     - It is type of class that mainly contains constants or fixed set of values
+     - It implicitly extends from abstract class java.lang.Enum
+     - It is implicitly final (ie) it cannot extend but implements interface
+     - It provides type-safe checking, invalid enum value introduce compiler error
+
+
+public enum Day /*implements MyInterface*/{
+    SUNDAY,
+    MONDAY,
+    TUESDAY ,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY;
+}
+interface MyInterface{
+
+}
+
+/*public enum ExtendedEnum extends Day{
+}*/
+
+
+public class Main {
+    public static void main(String[] args) {
+        Day d = Day.TUESDAY;
+        //Day d=2;  //error
+        Day d1 = Day.valueOf("TUESDAY");
+      // d1 = Day.valueOf("tuesday"); //compiler error because no enum tuesday
+
+        System.out.println(d == d1);
+        System.out.println(d.equals(d1));
+        System.out.println(Day.SUNDAY);
+        System.out.println(d.toString());
+
+        for (Day day: Day.values() ) {
+            System.out.println(day.name() + " " + day.ordinal());
+        }
+
+        /*if (Day.THURSDAY == 4){    //compiler error
+
+       }*/
+}
+
+
+Important notes
+1. Values are declare first
+2. Values end with semicolon,if there is anything besides value show compiler error
+
+public enum Day {
+    int i=4; //compiler error
+
+    SUNDAY,
+    MONDAY,
+    TUESDAY ,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY;
+   
+    private String temparature; //correct but previously u should end with semicolon
+}
+
+3. A non final enum method can be overridden by any enum value
+
+public enum Day {
+    int i=4; //compiler error
+
+    SUNDAY {
+      public void printTemperature(){            System.out.println(75);
+    }},
+    MONDAY,
+    TUESDAY ,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY;
+   
+    private String temparature; 
+
+    public void printTemperature(){                     System.out.println(65);
+    }
+}
+So sunday have overridden method and rest of days have default value 
+
+public class Main {
+    public static void main(String[] args) {
+       d.printTemperature();  //prints 65
+       Day.SUNDAY.printTemperature(); //prints 75
+    }
+}
+
+4. If we have abstract method then it should be implemented 
+
+public enum Day {
+    int i=4; //compiler error
+
+    SUNDAY {
+      public void printTemperature(){            
+           System.out.println(75);
+    }},
+    MONDAY{
+      public void printTemperature(){            
+           System.out.println(65);
+    }},
+    TUESDAY{
+      public void printTemperature(){            
+           System.out.println(75);
+    }} ,
+    WEDNESDAY{
+      public void printTemperature(){            
+           System.out.println(85);
+    }},
+    THURSDAY{
+      public void printTemperature(){            
+           System.out.println(65);
+    }},
+    FRIDAY{
+      public void printTemperature(){            
+           System.out.println(75);
+    }},
+    SATURDAY{
+      public void printTemperature(){            
+           System.out.println(85);
+    }};
+   
+    private String temparature; 
+
+    public abstract void printTemperature();
+}
+
+
+Constructor
+  - Implicitly private 
+  - Called once in the beginning to create enum values.
+
+
+public enum Day{
+    SUNDAY("High"){ public void printTemperature(){ System.out.println(75); }},
+    MONDAY ("Moderate"){ @Override public void printTemperature() {System.out.println(65);}},
+    TUESDAY ("High"){ @Override public void printTemperature() {System.out.println(75);}},
+    WEDNESDAY("High") { @Override public void printTemperature() {System.out.println(85);}},
+    THURSDAY ("Moderate"){ @Override public void printTemperature() {System.out.println(65);}},
+    FRIDAY ("High"){ @Override public void printTemperature() {System.out.println(75);}},
+    SATURDAY ("High"){ @Override public void printTemperature() {System.out.println(85);}};
+
+    private String temperature;
+
+    /*private*/ Day (String temperature){
+        this.temperature = temperature;
+    }
+
+    public  abstract void printTemperature();
+
+}
+
+5. Enum can also used in switch
+
+switch (d){
+            case SUNDAY:
+                System.out.println("Go to beach");
+                break;
+            case MONDAY:
+                System.out.println("Go back to work");
+                break;
+            case TUESDAY://Error- Day.TUESDAY: , 2
+                System.out.println("I am at work");
+                break;
+            default:
+                System.out.println("Are you at work?");
+        }
+
+
+Compiler error
+   Code will not compile if 
+     1. Values are not declared first
+     2. Constructor contains public or protected modifier
+     3. Switch block - contains case as Enum.TYPE
+     4. extends an enum
+     5. compare enum value with integer
