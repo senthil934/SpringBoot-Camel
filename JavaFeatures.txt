@@ -3892,3 +3892,69 @@ public class FormattingMessages {
 }
 
 If still not found throws MissingResourceException
+
+
+
+Event Driven Architecture on Apache Kafka with Spring boot
+    An event is a change in state, it can be anything example ur credit card bill payment for this month and once u paid, the status of ur bill is changed from unpaid to paid or when taking an online exam the status is changed from not taken to taken or in ecommerce sites when adding an item to ur shopping cart, the new item added counts as an event and ecommerce site will react to it and number of items in ur cart will increment and also the value of that item will be added to ur total amount 
+
+What is Event driven architecture?
+   It is architectural paradigm that uses events to trigger and communicate between loosely coupled appl or services, these events will need to be published to an event broker platform and sent over to consuming applications. An event may contain a state at a certain point in time like the status of amount paid, the items in ur shopping cart or notification like order has been shipped or certain amount has been credited to ur account
+
+Components of Event driven architecture
+  1. Producers
+        The producers are app or services that publish events to an event broker platform
+  2. Router
+        Event router or broker which is platform ot middleware that takes in events and routes them to their respective consuming applications 
+  3. Consumers 
+        It is another appl or service that consumes to particular topic in an event router and receives the event or stream of events and does something with it like save state to persistent storage or for analytics 
+
+Producers and consumers are decoupled which means they are not aware of each other so we can modify, deploy and scale them independently as necessary 
+
+Event driven Architecture Model
+1. Publish Subscribe model
+      When the event or messaging platform for our case that will be apache kafka keeps track of subscription. When an event is published it sends an event to one or more consumers. After an event is received it cannot be replayed or u can no longer refer to it again at a later time and new subscribers do not see that event 
+
+2. Event Stream model
+     Here events are written as a log and strictly ordered within a partition, consuming applications arent necessarily subscribed to receive individual events rather they receive stream or an unbounded flow of events and they can read from any part of that event 
+
+Benefits of Event driven architecture
+1. Asynchronous
+      Event driven architecture asynchronously receive and process events without getting blocked by earlier events 
+ 
+2. Scalable and Failure independent failures
+      Since producer and consumer services are loosely coupled, they fail independently and the event router should be elastic enough to be able to scale as needed and accomdate in workloads 
+  
+3. Auditing and Point-in-time recovery 
+     The event router or broker acts as a centralized location to audit ur appl. These events contain snapshots of a state u could use this to recover objects in their previous state or any state at certain point of time by rewinding events from the past 
+
+Drawbacks
+1. Complexity
+     There is an added routing middleware which could add to the complexity of the architecture of ur system 
+2. Non ACID compliant
+     Due to asynchronous distributed nature of event driven architectures we are going to have difficulties in maintaining transactional support 
+3. Cost
+     Pay a usually expensive subscription to a provider like Confluent 
+
+Apache Kafka
+   The event router that we will be using to implement simple event driven architecture is Apache Kafka 
+   Apache Kafka is an open source, distributed event streaming platform used by more than 1000 companies for high performance data pipelines, streaming analytics, data integration. It is originally developed by a team from linkedin but later open sourced in 2011 by with apache
+
+Producers and Consumers
+    Using Apache Kafka u could be having multiple appl or services that write events to a Kafka cluster, while at the same time you could also have multiple consumer apps that subscribe or stream events from Kafka 
+    A kafka cluster is a collection of brokers, we can think of these brokers as like servers in data center and they networked and function together as a single cluster. Brokers could be actual physical servers or single rack or VM 
+    Zookeeper is in charge of cluster management and also in failure management it decides which among the replicated brokers can be the new leader when broker fails. Brokers are replicated for redundancy which makes Kafka a more fault tolerant platform. Access Control Lists(ACL) are also stored in Zookeeper 
+
+Topics and Partitions
+    A broker can store multiple topics where producers write events on. 
+    A topic is a collection of related events or messages. When a producer app produces an event, u will need to specify the topic where u want to write or publish it to. The number of topics that can be created in Kafka is theoretically unlimted
+    Partition breaks up a topic into logical pieces and those topics are allocated into different brokers
+
+Scalable and Fault tolerant
+    The topics can scale forever in an individual broker which could be actual server or VM's, so broker is actually managing multiple partitions from different topics. Instead of forcing these brokers to scale up as the topic size increases, we scale out by distributng the partitions of a topic into multiple brokers and this significantly improves the IO and parallelization performance of the cluster 
+
+   Apache kafka is fault tolerant because the partitions are also replicated into different brokers. Replication factor which u could configure in ur application, consider we have replication factor = 3 so when broker goes down which have certain partition then we have backup of that partition another broker. Among the replicas of partition there is always a leader partition where producers and consumers write and read events respectively. When leader partition goes down unexpectedly then any of the follower partitions can ve promoted as new leader which is decided by kafka using zookeeper
+
+
+
+
