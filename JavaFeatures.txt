@@ -2436,3 +2436,1459 @@ Compiler error
      3. Switch block - contains case as Enum.TYPE
      4. extends an enum
      5. compare enum value with integer
+
+
+Multithreading - Concurrency
+
+Thread 
+   It is smallest unit of execution that can schedule by OS
+
+Process
+   It is group of one or more threads that are run in shared env
+
+Shared Environment
+   Multiple threads run in the same memory space an d talk to each other directly. If they are not in shared env, two threads cannot talk 
+
+Single Threaded Process
+   It is process that have exactly one thread
+Multi Threaded Process
+   It is process that have more than one thread 
+
+Consider we have a process and let say its a java program and then any process that is run by OS will have a memory associated with it where it stores all info that needs to run the program. Let say this program has multiple threads in it, so all the thread will use this memory that is reserved for the process. When the threads has to do some computation it needs CPU and to get CPU it takes the help of OS thread scheduler, thread scheduler is build in OS, which is used to find a CPU that is available for a given thread 
+
+2 types of Thread
+1. System Thread 
+      It is threads that we do not interact directly with. For example when we run a java program there are some background threads running (ie) Garbage collector that cleans up memory periodically and as a programmer we dont directly deal with garbage collector, so JVM takes care of it and runs in backend
+2. User defined thread 
+      It is the thread that we will create in our program. Every java program that we run are multithreaded program and we didnt dealt with system thread directly and jvm creating other threads and the program we have written in the main() is just one of the thread that jvm controls
+
+Thread concurrency
+     We know OS thread scheduler is sitting between thread and CPU's so that scheduler uses an algorithm to decide which threads get the CPU time
+1. Round Robin Scheduling in which a fixed amount of time is given to each thread and as soon as that time amount is over the thread is taken out of CPU and the next thread is put in for the computation. OS goes in round robin fashion starting with thread one to last thread and comes back again to thread one and so on
+
+2. Priority based scheduling
+      OS scheduler will always pick a thread which is of higher priority, so priority which is associated with the thread represent as integer number, if scheduler sees higher priority coming in it moves out the lower priority thread out of CPU and gives CPU with higher priority thread 
+      The process where the OS takes out a thread from CPU and puts a new thread is known as context switching
+
+Polling
+   Eventhough multithreaded program allows u to run tasks in parallel there is often a situation where one thread needs to wait for another thread, we can do using polling
+   Polling is a process where one thread constantly checks if the other thread is done before it continues 
+
+Polling using static variable
+     We create main thread and that main thread will start another thread, lets call that new thread as IncrementNumber which has static variable called counter, and static variable will be accessed by both the threads. 
+     So IncrementThread will keep on incrementing the counter variable and main thread will keep constantly checking the value of counter as soon as the value goes above defined value, the main thread will continue with its process
+
+public class CheckResult {
+    private static int counter=0;
+    PSVM throws InterruptedException{
+        new Thread(() -> {
+           for(int i=0;i<500;i++) {
+              CheckResult.counter++;
+           }
+        }).start();
+  
+      while(CheckResult.counter < 400){
+         System.out.println("Not reached, keep waiting");
+         Thread.sleep(1);
+      }
+       System.out.println("End of main thread");
+   }
+}
+
+
+Single Thread Executor 
+    We have seen 2 ways to create thread, but as the program gets bigger and bigger it becomes bit complex to do all the thread managment tasks manually. Java have concurreny API to handle the complicated work of managing threads
+
+ExecutorService Interface
+   It defines the operation that can done on thread, since this is an interface we need a concrete class that will have the implementation and concurrency api provides a way to get that concrete class.
+   We can get instance of single thread executor using below code, once we get hold of executor we can ask to execute as many task using execute() and then we need to shutdown the executor so if we do not shutdown then program keep on going
+
+  ExecutorService e=Executors.newSingleThreadExecutor();
+   e.execute(task);
+   e.shutdown();
+
+In the above code we are creating thread executor service that will manage only one thread so if we ask to execute multiple tasks all those tasks will be executed synchronously (ie) in sequence one after the other but those tasks will happen in parallel to the main thread 
+
+Consider we create thread with task1 which prints simple statement and task2 which print from 0 to 4. Now we create instance of SingleThreadExecutor and execute task1,task2,task1 and finally shutdown the executor
+
+public class Main { PSVM {
+    System.out.println("Start of Main thread");
+    Runnable task1=() -> {
+               System.out.println("Task 1: Simple print");
+    };
+    Runnable task2=() -> {
+           for(int i=0;i<5;i++){
+               System.out.println("Task 2:i="+i);
+           }
+    };
+
+    ExecutorService e=null;
+    try { 
+       e=Executors.newSingleThreadExecutors();
+       e.execute(task1);
+       e.execute(task2);
+       e.execute(task1);
+    }
+    finally {
+       if(e!=null) {
+          e.shutdown();
+       }
+    }
+    System.out.println("End of main thread");
+   }
+}
+
+Start of Main thread
+Task 1: Simple print
+Task 2:i=0
+Task 2:i=1
+Task 2:i=2
+Task 2:i=3
+Task 2:i=4
+Task 1: Simple print
+End of main thread
+
+Here we can see each task will execute sequentially because we use SingleThreadExecutor which happend in sequence and in parallel to main thread 
+
+Shutting down Executor service
+    - e.shutdown() does not actually stop any task  that have been submitted to thread executor, it will wait for all the tasks to finish and then shutdown the executor 
+    - e.shutdownNow(), let say we have given multiple tasks to the executor service, at any given point there will be some tasks that already have been finished, there will be some tasks that are in process at that particular time and there will be tasks in queue that are still to be executed. When shutdownNow() is hit the tasks that are currently in process, the executor service  attempts to stop them and tasks that are not yet started those tasks will not be executed and returns list of runnable tasks that are never executed  
+
+public class Main { PSVM {
+    System.out.println("Start of Main thread");
+    Runnable task1=() -> {
+               System.out.println("Task 1: Simple print");
+    };
+    Runnable task2=() -> {
+           for(int i=0;i<5;i++){
+               System.out.println("Task 2:i="+i);
+           }
+    };
+
+    ExecutorService e=null;
+    try { 
+       e=Executors.newSingleThreadExecutors();
+       e.execute(task1);
+       e.execute(task2);
+       e.execute(task1);
+    }
+    finally {
+       if(e!=null) {
+          List<Runnable> t=e.shutdown();
+          System.out.println(t.size()+"tasks never got run");
+       }
+    }
+    System.out.println("End of main thread");
+   }
+}
+
+Start of main thread
+Tas 1: Simple Print
+2 tasks never got run
+End of main thread 
+
+Now it will exexute task1 and by the time it got shutdownNow request so it didnt execute the other 2 tasks 
+
+Concurrency - submit,invokeAll/any
+    We have seen how to ask executor service to run tasks in a thread, we have used execute() but we not assigned the output of execute() to any variable because execute dosent return anything. This way of doing job is called fire and forget where u ask someone to do the task and dont care when it is finished or it finished successfully.
+   But if task returns some value and we want to get hold of that then we use submit(). The main difference between execute() and submit() is that submit() returns a Future object, this object represent the task and we can get the state of the task at any given point of time
+
+ExecutorService method
+1. void execute(Runnable task) - Takes Runnable task but does not return anything and task is executed some point in the future
+
+2. Future submit(Runnable task) - Takes Runnable task and returns Future object representing the task. 
+
+3. Future submit(Callable task) - Takes Callable task as input 
+   Callable is similar to Runnable, Callable will return something back. This submit() return Future object and we can use the Future object to get the value returned from the Callable
+
+4. List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException
+    It takes list of Callable tasks and wait for all of them to finish. This call is blocking call which means unless all the tasks are finished the control in the  code will not move forward and once the tasks are finished the method will return a list if future in the same order in which we gave the list of  tasks to it to execute
+
+5. T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException
+    It takes a list of Callable tasks and wait for at least one to finish, it returns the result of finished task, when anyone of task is finished then it cancels the remanining unfinished tasks 
+
+Future interface
+   - Used to get more information about the given tasks
+
+1. boolean isDone()
+      This method returns true if task is completed, completion may be due to normal termination that is task completed successfully or the task could have thrown exception or task would have been cancelled in all cases this method will return true 
+
+2. boolean isCancelled()
+      Returns true if this task was cancelled before it completed normally
+
+3. boolean cancel(boolean b)
+      Attempts to cancel a task, return true if its successfully cancelled, false if it could not be cancelled or its already finished
+
+4. V get()
+      Waits if necessary for the computation to complete, and then retrieves its result that return from task. This method will wait until the task is complete no matter how long the task takes 
+
+5. V get(long timeout, TimeUnit unit)
+      We give timeout and say that if the task has finished then return the result of the task but if it does not finish in provided time period then return back without getting the result 
+
+
+Example:
+   Here we create ExecutorService using newSingleThreadExecutor and submit a runnable task which just increment number from 1 to 500 and return the output of submit() to Future called result and we make result to wait for 10sec (ie)maximum time waiting for result. If the task completes successfully then it comes to print statement within 10sec, if the task dosent complete within 10sec then it will throw an exception 
+
+public class Main {
+   private static int counter=0;
+   PSVM() throws ExecutionException, InterruptedException {
+      ExecutorService service=null;
+   try {
+     service = Executors.newSingleThreadExecutor();
+     Future<?> result=service.submit(() -> {
+         for(int i=0;i<500;i++) {
+             Main.counter++;
+         }
+     )};
+     result.get(10,TimeUnit.SECONDS);
+     System.out.println("Task Completed");
+   }
+   catch(TimeoutException e){
+      System.out.println("Not completed task");
+   }
+   finally {
+       if(service!=null){
+           service.shutdown();
+       }
+   }
+  }
+}
+
+
+Callable Interface
+   @FunctionalInterface
+   public interface Callable {
+       V call() throws Exception;
+   }
+
+We create AddData class which add two numbers in a separate thread and return back to main thread, since we returning result we cannot use Runnable we use Callable.
+    Here we create ExecutorService using newSingleThreadExecutor and submit a task as callable to it and in this task we simply add 2 numbers and return the response  as Future. Here we didnt give timeout so the call will wait for the callable task to finish and move on and no matter how long callable task takes 
+
+public class Main {
+   PSVM() throws ExecutionException, InterruptedException {
+      System.out.println("Start of main thread");
+      ExecutorService service=null;
+   try {
+     service = Executors.newSingleThreadExecutor();
+     Future<?> result=service.submit(() -> 1+2);
+     System.out.println("Result ="+result.get());
+   }
+   catch(TimeoutException e){
+      System.out.println("Not completed task");
+   }
+   finally {
+       if(service!=null){
+           service.shutdown();
+       }
+   }
+   System.out.println("End of main thread");
+  }
+}
+
+So here get() waits until Callable task is finished 
+
+
+Submitting Multiple tasks using invokeAll/invokeAny
+    We create Callable task which return the string,and create ExecutorService. Now we call invokeAll which takes list of callable task and we give same task 3 times and finally return List<Future>. We use for loop to print the output of each callable 
+
+public class Main {
+   PSVM() throws ExecutionException, InterruptedException {
+      System.out.println("Start of main thread");
+      Callable<String> task=()->"Return from the thread";
+      ExecutorService service=null;
+   try {
+     service = Executors.newSingleThreadExecutor();
+     List<Future<String>> result=service.invokeAll(Arrays.asList(task,task,task));
+
+     for(Future result:results){
+          System.out.println(result.get());
+     }
+   }
+   finally {
+       if(service!=null){
+           service.shutdown();
+       }
+   }
+   System.out.println("End of main thread");
+  }
+}
+
+Output:
+Start of main thread
+Result from the thread
+Result from the thread
+Result from the thread
+End of main thread
+
+So here invokeAll() only return back when all 3 tasks that we gave to it finished.
+
+invokeAny:
+   It will return the result of the task that is completed 
+
+public class Main {
+   PSVM() throws ExecutionException, InterruptedException {
+      System.out.println("Start of main thread");
+      Callable<String> task=()->"Return from the thread";
+      ExecutorService service=null;
+   try {
+     service = Executors.newSingleThreadExecutor();
+    String result=service.invokeAny(Arrays.asList(task,task,task));
+          System.out.println(result);
+     
+   }
+   finally {
+       if(service!=null){
+           service.shutdown();
+       }
+   }
+   System.out.println("End of main thread");
+  }
+}
+
+Output:
+Start of main thread
+Result from the thread
+End of main thread
+
+Even though we asked to run 3 callable task, it just run anyone of task and whichever finishes the earliest it returns the response back and cancels the other 2 tasks 
+
+Waiting for result: 
+     ExecutorService service=null;
+   try {
+     service = Executors.newSingleThreadExecutor();
+     Future<?> result=service.submit(() -> {
+         for(int i=0;i<500;i++) {
+             Main.counter++;
+         }
+     )};
+     result.get(10,TimeUnit.SECONDS);
+     System.out.println("Task Completed");
+   }
+   In the previous example we have submitted runnable task and then we use Future object to wait  on the task to finish, we have another way to achieve this functionality ExecutorService awaitTermination() and we give timeout until when we want the executor to wait for the task to finish
+
+public class Main {
+   private static int counter=0;
+   PSVM() throws ExecutionException, InterruptedException {
+      ExecutorService service=null;
+   try {
+     service = Executors.newSingleThreadExecutor();
+     Future<?> result=service.submit(() -> {
+         for(int i=0;i<500;i++) {
+             Main.counter++;
+         }
+     });
+   }
+   finally {
+       if(service!=null){
+           service.shutdown();
+       }
+   }
+   if(service!=null){
+      service.awaitTermination(10,TimeUnit.SECONDS);
+      if(service.isTerminated()){
+         SOP("Task Completed");
+      } else {
+         SOP("Atleast one task is still running"):
+       }
+     }
+   }
+  }
+}
+
+
+How to schedule a task using Concurrency API?
+     Consider we want to create a job which runs at every 5min and check the status of another program thats running or we want to generate and send a report at the end of day. For these type of scenarios we want the task to happen at regular intervals and concurreny api provides a way to do that
+     Concurrency API has an interface called ScheduledExecutorService for this purpose and this interface extends ExecutorService 
+
+ScheduledExecutorService e=Executors.newSingleThreadScheduledExecutor();
+
+Methods:
+1. public ScheduledFuture<?> schedule(Runnable task, long delay, TimeUnit t)
+    This method will run the task that we provided with delay of time we provided and return type is ScheduledFuture
+   ScheduledFuture is an interface which extends Delayed and Future interface 
+   Delayed interface has method long getDelay(TimeUnit t) and returns the time that is left for the task to run 
+ 
+2. public ScheduledFuture<?> schedule(Callable task, long delay, TimeUnit t)
+    It takes callable and we see Runnable dosent return anything and Callable returns value from thread so depends on scenario we can use any method
+
+3. public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long initialDelay,long period, TimeUnit t)
+     Used to run the task at regular provided interval, previous 2 methods will only fire the task only once 
+
+4. public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long initialDelay,long period, TimeUnit t)
+    The difference between the above method is the delay that we provide, time period will only counts when the previous job is done. Say we have long running job, say the job that u run takes 2min and delay we give is 1min, in this case job will run for 2 min and there will be delay after first job is finished and then again the job will be kicked which will take another 2 min 
+   Whereas in previous method it dosent care about if ur job is finished, whenever the time period we have given expires it schedules another job
+
+Example 1:
+   We create Callable task which return string value, we create ScheduledExecutorService and we call schedule() which takes the task and run the task after 5sec 
+
+public class Main {
+    PSVM() throws ExecutionException, InterruptedException {
+    Callable<String> task=()->"Returned from thread";
+    ScheduledExecutorService service=null;
+    try {
+        service=Executors.newSingleThreadScheduledExecutor();
+ScheduledFuture future=service.schedule(task,5,TimeUnit.SECONDS);
+System.out.println(future.get());
+}
+finally {
+   if(service!=null){
+       service.shutdown();
+   }
+}
+}}
+
+When we run it will wait for 5sec timeout and then it will print the output 
+
+Example 2: We use Runnable
+
+public class Main {
+    PSVM() throws ExecutionException, InterruptedException {
+    Runnable<String> task=()->System.out.println("Returned from thread");
+    ScheduledExecutorService service=null;
+    try {
+        service=Executors.newSingleThreadScheduledExecutor();
+ScheduledFuture future=service.schedule(task,5,TimeUnit.SECONDS);
+}
+finally {
+   if(service!=null){
+       service.shutdown();
+   }
+}
+}}
+
+When we run it will wait for 5sec timeout and then it will print the output
+
+Example 3:
+   Here we give initial delay of 5sec and once time expires we want the job to run every second. In case of scheduleAtFixedRate or scheduleAtFixedDelay we dont shutdown executor because if u shutdown then it will stop working 
+
+public class Main {
+    PSVM()  {
+    Runnable<String> task=()->System.out.println("Returned from thread");
+    ScheduledExecutorService service=null;
+    
+        service=Executors.newSingleThreadScheduledExecutor();
+ScheduledFuture future=service.scheduleAtFixedRate(task,5,1,TimeUnit.SECONDS);
+}}
+
+First it will wait for initial 5sec delay after that it will run thread for every 1 sec
+
+If we want executor to shutdown then we need to write extra logic so here we sleep for 10sec and then shutdown the executor and after sleep we will cancel the task
+
+public class Main {
+    PSVM() throws InterruptedException {
+    Runnable<String> task=()->System.out.println("Returned from thread");
+    ScheduledExecutorService service=null;
+    try {
+        service=Executors.newSingleThreadScheduledExecutor();
+        ScheduledFuture future=service.scheduleAtFixedRate(task,5,1,TimeUnit.SECONDS);
+        Thread.sleep(10000);
+        future.cancel(true);
+    }
+    finally {
+   if(service!=null){
+       service.shutdown();
+   }
+}
+}}
+
+Here we ask ScheduledExecutorService to schedule the task, then main thread will sleep for 10sec after that we cancel the task using cancel() after that goes to finally block and stops the executor 
+
+Example 4:
+  Now we want the task to some time to execute by using sleep()
+
+public class Main {
+    PSVM()  {
+    Runnable<String> task=()->{
+         System.out.println("Start of task");
+         try {   Thread.sleep(5000); }
+         catch(InterruptedException e){ }
+         System.out.println("End of task");
+    };
+    ScheduledExecutorService service=null;
+    
+        service=Executors.newSingleThreadScheduledExecutor();
+ScheduledFuture future=service.scheduleAtFixedRate(task,5,1,TimeUnit.SECONDS);
+}}
+
+First program will wait for 5sec initial delay and now task is started but it is long running task and then task ended and next task is already started. The reason next task immediately starts was it has already passed that 1sec period, so 1sec period starts as soon as task is kicked off. Since the task ran longer than our time period the next task ran immediately after that.
+   In case if we want a gap between first and second task then we use scheduleWithFixedDelay is used
+
+
+public class Main {
+    PSVM()  {
+    Runnable<String> task=()->{
+         System.out.println("Start of task");
+         try {   Thread.sleep(5000); }
+         catch(InterruptedException e){ }
+         System.out.println("End of task");
+    };
+    ScheduledExecutorService service=null;
+    
+        service=Executors.newSingleThreadScheduledExecutor();
+ScheduledFuture future=service.scheduleWithFixedDelay(task,5,1,TimeUnit.SECONDS);
+}}
+
+First it waits for initial 5sec delay, the thread is started since its long running we are waiting for it to finish and thread finished. Next we can see a gap inbetween start of next one and end of previous one and this gap is due to 1sec period we gave 
+
+
+Thread Pools
+    We has created a main thread and that starts execution and at some point its going to create ExecutorService using newSingleThreadExecutor() which will handle only one thread . Now if main() want to execute a task it will ask ExecutorService to execute the task in a different thread, since this is singleThreadExecutor it gives the task to one thread it manages and the task gets executed.
+    Now the main thread gives 4 tasks to the executor then the ExecutorService makes use of 1 thread it has to execute those tasks, now the tasks will be executed one after the other in sequence, they do happen in parallel to the main thread but there is no concurrency within the task itself. If you want to these 4 tasks to be run in parallel thats where Thread pool is used
+
+Introduction to Thread Pool
+    We will start the main thread and at some point in main thread we create ExecutorService which handle 4 threads. Now let say main thread wants the 4 tasks to be executed, then its going to handover those 4 tasks to the executor service and ask to execute into the threads. ExecutorService will take each task and assign a thread to the task, since ExecutorService have 4 different threads that its managing all 4 threads will execute those tasks in parallel along with main, so main is 5th thread in this case 
+
+How to get Thread Pool Executors?
+3 methods
+1. ExecutorService newFixedThreadPool(int)
+       This method will return ExecutorService which will manage a fixed number of threads and that number of threads will be determined by parameters that we pass 
+
+2. ExecutorService newCachedThreadPool()
+       We are not passing integer number which means we are not predefining the number of threads so ExecutorService will create threads on demand so as soon as it receives a task it creates a thread and does that task, if it receives multiple tasks in parallel that means if one task is running and before it finishes, it receives another task then it will create a second thread so once the task is finished, the thread stays for 1min and if no new tasks coming then thread will discarded 
+
+3. ScheduledExecutorService newScheduledThreadPool(int)
+      Used to get ScheduledExecutorService which schedule the task at sometime in future and it can be recurring task, to get a scheduledExecutorService which manages more than one thread we use newScheduledThreadPool and pass an integer 
+
+Example 1:
+   In main() we create Runnable task and print thread id using Thread.currentThread.getId() which will assigned by default to each thread with sleep of 5 sec.
+   Now create ExecutorService which  manage 4 different threads , now we submit the task 4 times (ie) we give 4 tasks to thread executor to run 
+
+public class Main { PSVM {
+   Runnable task = () -> {
+       System.out.println("Start of task with id="+Thread.currentThread().getId());
+     try {  Thread.sleep(5000); }
+     catch(InterruptedException e){ }
+   };
+  
+  ExecutorService service=Executors.newFixedThreadPool(4);
+  try {
+       service.submit(task);
+       service.submit(task);
+       service.submit(task);
+       service.submit(task);
+  }
+  finally {
+      if(service!=null)
+          service.shutdown();
+  }
+ }
+}
+
+Now we can see all 4 task will be started in parallel and once 5sec sleep is over it ends the task and all 4 tasks taking exactly 5sec
+
+Example 2:
+  Instead of giving fixed sleep of 5sec to all task, we give random sleep by using Random class. So it will return intefer number between 0 to 20, when we submit 4 tasks all tasks will have different sleep times  
+
+public class Main { 
+    private static Random random=new Random();
+   PSVM {
+   Runnable task = () -> {
+       int sleepTime=random.nextInt(20);
+       System.out.println("Start of task with id="+Thread.currentThread().getId()+" "+sleepTime+"seconds");
+     try {  Thread.sleep(sleepTime+1000); }
+     catch(InterruptedException e){ }
+   };
+  
+  ExecutorService service=Executors.newFixedThreadPool(4);
+  try {
+       service.submit(task);
+       service.submit(task);
+       service.submit(task);
+       service.submit(task);
+  }
+  finally {
+      if(service!=null)
+          service.shutdown();
+  }
+ }
+}
+
+Now we can see different task taking different time to run.
+
+Example:
+   Now we use newCachedThreadPool(), so in this case when executor starts it dosent have any thread but as we submit the task it actually creates a new threads on fly 
+
+public class Main { 
+    private static Random random=new Random();
+   PSVM {
+   Runnable task = () -> {
+       int sleepTime=random.nextInt(20);
+       System.out.println("Start of task with id="+Thread.currentThread().getId()+" "+sleepTime+"seconds");
+     try {  Thread.sleep(sleepTime+1000); }
+     catch(InterruptedException e){ }
+   };
+  
+  ExecutorService service=Executors.newCachedThreadPool();
+  try {
+       service.submit(task);
+       service.submit(task);
+       service.submit(task);
+       service.submit(task);
+  }
+  finally {
+      if(service!=null)
+          service.shutdown();
+  }
+ }
+}
+
+We can see 4 tasks in parallel with random delays and once all 4 of them finishes, the program ends
+
+Example:
+  Now we provide newScheduledThreadPool() which return ScheduledExecutorService and we can schedule the first task 5 sec later and schedule second task 6sec later, 3rd task 7sec later and 4th task 8sec later
+
+public class Main { 
+    private static Random random=new Random();
+   PSVM {
+   Runnable task = () -> {
+       int sleepTime=random.nextInt(20);
+       System.out.println("Start of task with id="+Thread.currentThread().getId()+" "+sleepTime+"seconds");
+     try {  Thread.sleep(sleepTime+1000); }
+     catch(InterruptedException e){ }
+   };
+  
+  ScheduledExecutorService service=Executors.newScheduledThreadPool(4);
+  try {
+       service.schedule(task,5,TimeUnit.SECONDS);
+       service.schedule(task,6,TimeUnit.SECONDS);
+       service.schedule(task,7,TimeUnit.SECONDS);
+       service.schedule(task,8,TimeUnit.SECONDS);
+  }
+  finally {
+      if(service!=null)
+          service.shutdown();
+  }
+ }
+}
+
+First it will wait for initial delay for each task and one by one it will schedule all 4 tasks with random sleep and all 4 tasks running in parallel
+
+
+Understanding the problem of Thread Safety
+     We create static variable and then we create 10 different threads and ask each thread to increment and print the number
+
+public class Main {
+  private static Integer counter=0;
+  PSVM() {
+    ExecutorService service=Executors.newFixedThreadPool(10);
+    try {
+       for(int i=0;i<10;i++) {
+          service.submit(() -> {
+             System.out.println(++counter+" ");
+          });
+       }
+    } finally {
+        if(service != null) 
+           service.shutdown();
+      }
+   }
+}
+
+Here each thread would go and get the counter, increment the counter to its next value and it should print from 1 to 10. But when we run it is very different.
+
+Problem with the code we wrote
+1. Duplicity
+2. Missing Number (only incremented number until 8 not 10)
+3. Output are not in sequence 
+
+   So when the program starts we have created counter static variable and in main thread once the execution starts we create ExecutorService and then submit 10 tasks to it to increment 1 number. Since ExecutorService managing 10 different threads so it will use each thread to increment the counter once,due to parallel task that we are running we have this problem 
+
+
+Increment Operation using Atomic class
+     Since all classes are thread safety in Atomic class we dont want to worry about thread safe 
+
+public class Main {
+  private static AtomicInteger counter=new AtomicInteger();
+  PSVM() {
+    ExecutorService service=Executors.newFixedThreadPool(10);
+    try {
+       for(int i=0;i<10;i++) {
+          service.submit(() -> {
+             System.out.println(counter.incrementAndGet()+" ");
+          });
+       }
+    } finally {
+        if(service != null) 
+           service.shutdown();
+      }
+   }
+}
+
+Now all 10 threads have incremented the variable exactly once and print the number from 1 to 10 but not in order 
+
+3 Atomic class 
+    1. AtomicInteger
+    2. AtomicLong
+    3. AtomicBoolean 
+All are used to do operations in thread safe way
+
+Common Atomic Methods
+1. get() - get the value
+2. set() - set the value 
+3. getAndSet() - used to set new value that is passed in and method returns old value that was stored in the variable 
+4. incrementAndGet() - equivalent to pre increment
+5. getAndIncrement() - equivalent to post increment
+6. decrementAndGet() - equivalent to pre decrement
+7. getAndDecrement() - equivalent to post increment
+
+
+Writing Thread Safety Code using Synchronized Block
+      Previously we saw Atomic classes to achieve thread safety in increment operation. Now we have a requirement that we want to print all the variables in sequence which means that one thread not only should increment the variable but also we want to print the number before the other threads can access it
+    
+Synchronized block
+    //some code
+    synchronized(someinstance) {
+        //This code will be accessed by one and one 
+        //only thread at given time
+    }
+    //More code
+
+Synchronized block will have synchronized keyword and have an instance in the argument with start and end curly braces, any code that goes within these curly braces can be accessed by one and only one thread at any given time, the instance provided in parenthesis can be any object 
+    Consider we have 2 threads thread1 and thread2, they both running code in parallel. Say thread1 reaches the synchronized block first, it uses that instance that we provided in the argument to acquire the lock. When thread1 has a lock and other thread reaches, then they have to wait to get the lock, thread1 will release the lock only when it reaches closing curly braces of synchrozied block, until that thread2 will keep on waiting for the lock.
+   Thread2 will acquire the lock on the instance and then start executing that code within the block and once the thread2 reaches to the end of block then it release the lock for other threads to acquire it, so using this process we will ensure that code that is written within curly brace will always run by one thread at any given point of time and since the synchronzied block is run sequentially within the thread to improve the performance, this block should be as small as possible 
+
+Example:
+   Here we use synchronized block in place where we define the task, so here we use service as instance  that the threads will get locked on 
+    
+public class Main {
+  private static Integer counter=0;
+  PSVM() {
+    ExecutorService service=Executors.newFixedThreadPool(10);
+    try {
+       for(int i=0;i<10;i++) {
+          service.submit(() -> {
+              synchronized(service) }
+             System.out.println(++counter);
+            }
+          });
+       }
+    } finally {
+        if(service != null) 
+           service.shutdown();
+      }
+   }
+}
+We can see the output where all numbers will be printed in sequence because print statement is also synchronized so until one thread increments and prints the value, it dosent give access of counter to second thread 
+
+Reentrant Lock 
+    We have seen synchronized block as if one thread acquires the lock, the other threads cannot access the code written in synchronized block and keeps waiting until the first thread has finished 
+    If we want the thread2 to first check if it can acquire a lock and if it cannot for now, we want to  do something else and then try again after sometime, that way thread2 dosent have to wait while thread1 is executing the synchronized block.
+    In case if thread1 never releases the lock then thread2 will wait there forever, to address this problem concurrency API have lock framework where we can get more control on acquiring the lock and for that we use Lock interface 
+    Its is similar to synchronization block, the only difference is instead of synchronizing on any object we can only lock on the object that implements the lock interface. We can get concrete implementation of lock interface using ReentrantLock class 
+     
+    Lock lock=new ReentrantLock();
+    try  {
+        lock.lock();
+    }
+    finally {
+        lock.unlock();
+    }
+
+First we create an instance of ReentrantLock class and then use lock() to get the lock and then do the work that cannot be run in parallel and when we done with work we release the lock using unlock(), releasing the lock is important otherwise other thread will not get the lock forever and also we can only release the lock that we have acquired 
+
+Example:
+
+public class Main {
+  private static Integer counter=0;
+  PSVM() {
+    ExecutorService service=Executors.newFixedThreadPool(10);
+  Lock lock=new ReentrantLock();
+    try {
+       for(int i=0;i<10;i++) {
+          service.submit(() -> {
+              try { lock.lock();
+             System.out.println(++counter);}
+            finally { lock.unlock(); }
+            }
+          });
+       }
+    } finally {
+        if(service != null) 
+           service.shutdown();
+      }
+   }
+}
+We can see the output where all numbers will be printed in sequence
+
+Example:
+    We see what happens if we do not unlock 
+
+public class Main {
+  private static Integer counter=0;
+  PSVM() {
+    ExecutorService service=Executors.newFixedThreadPool(10);
+  Lock lock=new ReentrantLock();
+    try {
+       for(int i=0;i<10;i++) {
+          service.submit(() -> {
+              try { lock.lock();
+             System.out.println(++counter);}
+            finally { //lock.unlock(); }
+            }
+          });
+       }
+    } finally {
+        if(service != null) 
+           service.shutdown();
+      }
+   }
+}
+
+The program hangs because thread comes in it get the lock, it prints the value but never releases it and the thread finishes and other threads are still waiting to get the lock, so always we need to unlock in case of Lock framework
+
+Methods in Lock interface
+1. void lock() - requests lock and blocks until uts acquired. It is blocking call which means whatever method is calling the lock method will actually block its execution until it acquires the lock 
+2. void unlock() - Releases the lock
+3. boolean tryLock() - Requests the lock and return immediately, the return value will tell if the lock  was acquired or not
+4. boolean tryLock(long,TimeUnit) - Requests the lock and blocks for specified time. The return value will tell if the lock is acquired or not 
+
+Example:
+   We create acquireLock() which takes lock as argument and it will simply get the lock and release the lock 
+   In main(), we create instance of Lock and we create a another new thread which run parallel to main thread and then task that new thread will do is simply get and release the lock. And we use tryLock() to get the lock and if we get and we print 
+
+public class Main {
+  PSVM() {
+  Lock lock=new ReentrantLock();
+  new Thread(()->acquireLock(lock)).start();
+  if(lock.tryLock()){
+     SOP("Lock acquired by main thread");
+     lock.unlock();
+  }
+  else {
+     SOP("Lock cannot acquired by main thread");
+  }
+ }
+  public static void acquireLock(Lock lock){
+    try {
+        lock.lock();
+    }
+    finally {
+        lock.unlock();
+    }
+  }
+}
+
+Output: Lock cannot acquired by main thread
+   The reason is when main thread try to acquire the lock using tryLock(), at that time the other thread that we created has that lock, so main thread did not wait to get the lock 
+
+Example:
+public class Main {
+  PSVM()throws InterruptedException {
+  Lock lock=new ReentrantLock();
+  new Thread(()->acquireLock(lock)).start();
+  Thread.sleep(2000);
+  if(lock.tryLock()){
+     SOP("Lock acquired by main thread");
+     lock.unlock();
+  }
+  else {
+     SOP("Lock cannot acquired by main thread");
+  }
+ }
+  public static void acquireLock(Lock lock){
+    try {
+        lock.lock();
+    }
+    finally {
+        lock.unlock();
+    }
+  }
+}
+
+Output: Lock acquired by main thread
+   The reason is by 2 sec the additional thread that we created it already acquire the lock and release it, so now main thread able to acquire the lock 
+
+1. Without locking the thread, if we unlock then the program throws IllegalMonitorStateException
+public class Main {
+  PSVM() {
+  Lock lock=new ReentrantLock();
+        lock.unlock();
+  }
+}
+
+2. Lock framework will keep the count of how many times have we locked 
+public class Main {
+  PSVM() {
+  Lock lock=new ReentrantLock();
+        lock.lock();
+        lock.lock();
+        lock.unlock();
+        lock.unlock();
+
+     new Thread(()->System.out.println(lock.tryLock())).start();
+  }
+}
+Output: True
+   The reason is new thread we create is able to get the lock because main thread already released the lock
+
+
+Cyclic Barrier
+    Consider we have cage which has some lions in it  and the task that we want to achieve is to clean the cage. At high level this is how the sequence would be so we will remove all lions from cage, we will clean the cage and once its clean we will put back all the lions.
+    Conside zoo has only 1 employee, the employee will remove all the lions in the cage one after the other, once all the lions are removed that employee goes into the cage and cleans, comes back out and put back all lions in cage. If we have one employee  then we do not have any problem, we do not need any orchestration the employee is doing what he suppose to do.
+   Now say we have 4 employees and we want to use all 4 employees to do as much work as possible in parallel, so that the work as whole is done in a greater speed, given that they all 4 different human beings all of them will have a different caliber and hence they might work in a different speed, so there is possibility that employee1 removes the lion and goes into cage to clean it even before the other 3 lions are removed (ie) employee1 is much faster than other 3. But we have problem that employee1 is in cage with 3 lions in it which might not end well.
+   What we want is eventhough employee1 is fast we need to ask him to wait until all other 3 lions are  removed from the cage, and once they are then all 4 employees will go in cage, they all will clean the cage and all of them do their part of the job and all 4 employees are back out of cage, then we will bring all 4 lions into cage 
+   So in multithreading, think 4 employees as 4 different threads, we need some kind of orchestration which would communicate between the threads, so eventhough 1 thread is faster than other we want it to wait until other 3 threads done that unit of task and only after all 4 threads have done the task they will move on to the next unit. This orchestration of task can be done using cyclic barrier 
+
+Example:
+   We create ZooManager class with removeLion() which just print some statement along with id of thread. We create another method cleanCage() which just print some statement along with id of thread. We create another method addLion() which just print some statement along with id of thread. Next we create performTasks() which call all previous that we created      
+   Next we create main class inside we create ExecutorService with 4 different threads, next we create instance of ZooManager class, next we submit the task and task will be doing all three different  task we defined 
+
+public class ZooManager {
+  public void removeLion() {
+      SOP(Thread.currentThread().getId()+"Removing lion");
+  }
+  public void cleanCage() {
+      SOP(Thread.currentThread().getId()+"Cleaning cage");
+  }
+  public void addLion() {
+      SOP(Thread.currentThread().getId()+"Adding lion");
+  }
+  public void performTasks(CyclicBarrier c1, CyclicBarrier c2) {
+     try { removeLion();
+      c1.await();
+      cleanCage();
+      c2.await();
+      addLion();
+     }
+     catch(InterruptedException | BrokenBarrierException e) {
+        System.out.println(e);
+     }
+  }
+}
+
+public class Main { PSVM  {
+   ExecutorService service=Executors.newFixedThreadPool(4);
+   ZooManager manager=new ZooManager();
+   CyclicBarrier c1=new CyclicBarrier(4);
+   CyclicBarrier c2=new CyclicBarrier(4,()->System.out.println("Cage cleaned"));
+   try {
+       for(int i=0;i<4;i++) {
+          service.submit(()->manager.performTasks(c1,c2));
+    }
+   finally {
+      if(service != null){
+          service.shutdown();
+      }
+   }
+}
+
+await() is going to stop the execution of threads until a counter has been reached and that counter is the number that we gave in the constructor when we created Cyclic Barrier 
+
+JDBC -  https://github.com/mhussainshah1/JDBC11
+
+Bind Variables
+   The placeholder that lets u specify  the actual values at runtime
+
+Can:
+  - set parameters out of order
+  - set the different parameter and skip similar in updating multi times
+
+public class UpdateMultiples {
+    public static void main(String[] args) throws SQLException {
+        var sql = "INSERT INTO names VALUES (?, ?, ?)";
+        try(Connection conn = DriverManager.getConnection("jdbc:derby:zoo");
+            var ps = conn.prepareStatement(sql)){
+
+            ps.setInt(1, 20);
+            ps.setInt(2, 1);
+            ps.setString(3, "Ester");
+            ps.executeUpdate();
+
+            ps.setInt(1,21);
+            ps.setString(3, "Elias");
+            ps.executeUpdate();
+        }
+    }
+}
+
+Java is smart enough, it will take 2nd bind variable from the previous one so output to be 20,1,Ester and 21,1,Elias
+
+Cant:
+   - set more or less values than u have as bind variable
+
+//error
+public static void registerMore(Connection conn, int key, int type, String name) throws SQLException {
+        var sql = "INSERT INTO names VALUES (?, ?)";
+        try (var ps = conn.prepareStatement(sql)) {
+            ps.setInt(1,key);
+            ps.setInt(2,type);
+            ps.setString(3,name);
+
+            int result = ps.executeUpdate();
+            System.out.println(result);
+        }
+    }
+
+//error
+    public static void registerLess(Connection conn, int key, int type, String name) throws SQLException {
+        var sql = "INSERT INTO names VALUES (?, ?, ?)";
+        try (var ps = conn.prepareStatement(sql)) {
+            ps.setInt(1,key);
+            ps.setInt(2,type);
+
+            int result = ps.executeUpdate();
+            System.out.println(result);
+        }
+    }
+   - cant Work if u dont set them in between PreparedStatement and ResultSet
+
+public class BindVariables {
+    public static void main(String[] args) throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:derby:zoo");
+        var sql = "SELECT id FROM exhibits where name = ?";
+
+        try(var ps = conn.prepareStatement(sql)){
+
+            ps.setString(1, "Zebra");//set in between ps and rs
+
+            try(var rs = ps.executeQuery()){
+                while (rs.next()){
+                    int id = rs.getInt("id");
+                    System.out.println(id);
+                }
+            }
+        }
+
+    }
+}
+
+
+
+public class BadCode {
+    public static void main(String[] args) throws SQLException {
+        Connection conn = DriverManager.getConnection("jdbc:derby:zoo");
+        var sql = "SELECT COUNT(*) AS count FROM EXHIBITS";
+        /*try (var ps = conn.prepareStatement(sql);
+             var rs = ps.executeQuery()) {
+            if (rs.next()) {
+                var count = rs.getInt("total");//SQLException: Column 'total' not found.
+                System.out.println(count);
+            }
+        }*/
+
+        /*sql = "SELECT * FROM EXHIBITS WHERE name = 'Not in table'";
+        try (var ps = conn.prepareStatement(sql);
+             var rs = ps.executeQuery()) {
+            rs.next();
+            rs.getInt(1);//SQLException: Invalid cursor state - no current row.
+        }*/
+
+        /*sql = "SELECT COUNT(*) FROM EXHIBITS";
+        try (var ps = conn.prepareStatement(sql);
+             var rs = ps.executeQuery()) {
+            if (rs.next()) {
+                var count = rs.getInt(0);//SQLException:  Column '0' not found.
+                System.out.println(count);
+            }
+        }*/
+
+        sql = "SELECT name FROM EXHIBITS";
+        try (var ps = conn.prepareStatement(sql);
+             var rs = ps.executeQuery()) {
+            if (rs.next()) {
+                rs.getInt("badColumn");//SQLException:  Column 'badColumn' not found.
+            }
+        }
+
+    }
+}
+
+Closing Database Resources
+   - Closing a Connection also closes PreparedStatement or CallableStatement and ResultSet
+   - Closing a PreparedStatement or CallableStatement and ResultSet
+   - JDBC automatically close a ResultSet when u run another SQL statement from same statement
+
+public class TryCatchResources {
+    public static void main(String[] args) throws SQLException {
+
+        var url = "jdbc:derby:zoo";
+        var sql = "SELECT COUNT(*) FROM names WHERE id = ?";
+        try (var conn = DriverManager.getConnection(url);    //1 - open conn
+             var ps = conn.prepareStatement(sql)) {     //2 - open ps
+            ps.setInt(1, 1);
+
+            var rs1 = ps.executeQuery();
+            while (rs1.next()) {                                        //3 - open rs1
+                System.out.println("Count: " + rs1.getInt(1));
+            }
+
+            ps.setInt(1, 2);
+            var rs2 = ps.executeQuery();
+            while (rs2.next()) {                                        //4 - close rs1  , 5 - open rs2
+                System.out.println("Count: " + rs2.getInt(1));
+            }
+            rs2.close();                                                //6 - close rs2
+        }                                                               //7 - close ps
+                                                                        //8 - close conn
+    }
+}
+
+
+Localization
+
+https://github.com/mhussainshah1/Localization
+
+Date Formatting
+
+public class FormatDateTime {
+    public static void main(String[] args) {
+        LocalDate date = LocalDate.of(2020, Month.NOVEMBER, 10);
+        LocalTime time = LocalTime.of(19, 23);
+        LocalDateTime dt = LocalDateTime.of(date, time);
+
+        //format
+        //buit-in formatter
+        System.out.println(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        System.out.println(time.format(DateTimeFormatter.ISO_LOCAL_TIME));
+        System.out.println(dt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+//        System.out.println(date.format(DateTimeFormatter.ISO_LOCAL_TIME));
+//        System.out.println(time.format(DateTimeFormatter.ISO_LOCAL_DATE));
+
+        //custom formatter
+        var formatter1 = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm:ss");
+        System.out.println(dt.format(formatter1));
+
+        var formatter2 = DateTimeFormatter.ofPattern("MM_yyyy_-_dd");
+        System.out.println(dt.format(formatter2));
+
+        var formatter3 = DateTimeFormatter.ofPattern("h:mm z");
+//        System.out.println(dt.format(formatter3));
+
+        System.out.println(formatter1.format(dt));
+
+        //Add custom text
+        var f = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm");
+        System.out.println(dt.format(f));
+
+        var f1 = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
+        var f2 = DateTimeFormatter.ofPattern("hh:mm");
+        System.out.println(dt.format(f1) + " at " + dt.format(f2));
+
+        var g1 = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'Party''s at' hh:mm");
+        System.out.println(dt.format(g1));
+
+        var g2 = DateTimeFormatter.ofPattern("'System format, hh:mm' hh:mm");
+        System.out.println(dt.format(g2));
+
+        var g3 = DateTimeFormatter.ofPattern("'New!' yyyy ',yay!!'");
+        System.out.println(dt.format(g3));
+
+//        DateTimeFormatter.ofPattern("Time is: hh:mm:ss");
+//        DateTimeFormatter.ofPattern("'Time is: hh:mm:ss");
+
+        //In java 7
+        DateFormat s = new SimpleDateFormat("MMMM dd, yyyy 'at' hh:mm");
+        System.out.println(s.format(new Date()));
+    }
+}
+
+Internationalization
+   Designing ur program so it can ve adapted. This involves placing strings in a properties file and ensuring the proper data formatters are used
+
+Locale: specific geographical, political or cultural region
+
+Localization - supporting multiple locales or geographic regios. It includes translating strings to different languages. Output the dates and numbers in the correct format for that locale
+
+Locale class - java.util.* package
+  Locale language - fr
+  Locale language,country - en_US
+
+Select Built-in Locale
+1. constants - Locale.GERMAN
+
+2. Constructor
+       new Locale("fr");
+       new Locale("en","US");
+
+Invalid identifier
+   EN - langugae must be lowercase
+   US - cannot have country without language
+   enUS - Missing Underscore
+   US_en - The country and language are reversed
+
+3. Builder design pattern
+     Locale l1=new Locale.Builder()
+        .setLanguage("en").setRegio("US").build();
+
+Methods:
+   1. public static Locale getDefault()
+   2. public static void setDefault(Locale newLocale)
+   3. public static void setLocale(Locale.Category l,Locale newLocale)
+
+public class MyLocale {
+    public static void main(String[] args) {
+        Locale locale = Locale.getDefault();
+        System.out.println(locale);//en_US
+
+        //Select Locale
+        System.out.println(Locale.GERMAN);//de
+        System.out.println(Locale.GERMANY);//de_DE
+
+        //2
+        System.out.println(new Locale("fr"));//fr
+        System.out.println(new Locale("ur","PK"));//ur_PK
+        System.out.println(new Locale("xx","XX")); //prints but dosent behave as Locale
+
+        //3
+        Locale l1 = new Locale.Builder()
+                .setLanguage("hi")
+                .setRegion("IN")
+                .build(); //hi_IN
+
+        Locale l2 = new Locale.Builder()
+                .setRegion("IN")
+                .setLanguage("hi")
+                .build(); //hi_IN
+
+        //set local
+        locale = new Locale("fr");
+        Locale.setDefault(locale);
+        System.out.println(Locale.getDefault());
+    }
+}
+
+Localizing Dates - package java.time.format
+
+1. For formatting dates - DateTimeFormatter.ofLocalizedDate(dateStyle)
+
+2. For formatting times - DateTimeFormatter.ofLocalizedTime(timeStyle)
+
+3. For formatting dates and times - DateTimeFormatter.ofLocalizedDateTime(dateStyle,timeStyle)
+DateTimeFormatter.ofLocalizedDateTime(datetimeStyle)
+
+public class LocalizingDates {
+
+    public static void print(DateTimeFormatter dtf, LocalDateTime dateTime, Locale locale){
+        System.out.println(dtf.format(dateTime) + ", " + dtf.withLocale(locale).format(dateTime));
+    }
+    public static void main(String[] args) {
+        Locale.setDefault(new Locale("en","US"));
+        var italy = new Locale("it","IT");
+        var dt = LocalDateTime.of(2020, Month.NOVEMBER,12,19,23,55);
+
+        print(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT),dt,italy);
+        print(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT),dt,italy);
+        print(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT,FormatStyle.SHORT),dt,italy);
+    }
+}
+
+Localizing Number - package java.text
+
+1. General purpose formatter 
+     - NumberFormat.getInstance()
+     - NumberFormat.getInstance(locale)
+
+2. Same as getInstance
+     - NumberFormat.getNumberInstance()
+     - NumberFormat.getNumberInstance(locale)
+
+3. For formatting monetary amounts
+     - NumberFormat.getCurrencyInstance()
+     - NumberFormat.getCurrencyInstance(locale)
+
+4. For formatting percentages
+     - NumberFormat.getPercentInstance()
+     - NumberFormat.getPercentInstance(locale)
+
+5. Rounds decimal values before displaying
+     - NumberFormat.getIntegerInstance()
+     - NumberFormat.getIntegerInstance(locale)
+
+public final String format(double num) - change number to string
+
+public Number parse(String source) throws ParseException - change String into Number
+
+
+public class LocalizingNumbers {
+    public static void main(String[] args) throws ParseException {
+        //formatting
+        //numbers
+        int attendeesPerYear = 3_200_000;
+        int attendeesPerMonth = attendeesPerYear / 12;
+
+        var us = NumberFormat.getInstance(Locale.US);
+        System.out.println(us.format(attendeesPerMonth));//266,666
+
+        var gr = NumberFormat.getInstance(Locale.GERMANY);
+        System.out.println(gr.format(attendeesPerMonth));//266.666
+
+        var ca = NumberFormat.getInstance(Locale.CANADA_FRENCH);
+        System.out.println(ca.format(attendeesPerMonth));//266 666
+
+        //currency
+        Locale.setDefault(new Locale("en","GB"));
+        double price =40;
+        var myLocale = NumberFormat.getCurrencyInstance();
+        System.out.println(myLocale.format(price));//£40.00
+
+        //parsing
+        //number
+        Locale.setDefault(new Locale("en","US"));
+        String s ="40.45";
+        var en =NumberFormat.getInstance();
+        System.out.println(en.parse(s));
+        var fr =NumberFormat.getInstance(Locale.FRANCE);
+        System.out.println(fr.parse(s));
+
+        //currency
+        String income = "$92,807.99";
+        var cf = NumberFormat.getCurrencyInstance();
+        double value = (Double)cf.parse(income);
+        System.out.println(value);
+
+        //Custom Formatting
+        //number
+        double d = 1234567.467;
+        NumberFormat f1 = new DecimalFormat("###,###,###.0");
+        System.out.println(f1.format(d));//1,234,567.5
+
+        NumberFormat f2 = new DecimalFormat("000,000,000.00000");
+        System.out.println(f2.format(d));//001,234,567.46700
+
+        //currency
+        NumberFormat f3 = new DecimalFormat("$#,###,###.##");
+        System.out.println(f3.format(d));//$1,234,567.47
+
+    }
+}
+
+Custom Number formatter
+    public DecimalFormat(String pattern)
+
+# - Omit the position if no digit exist for it
+0 - Put O in the position if no digit exists for it
+
+Specifying Locale Category
+   Locale.Category enum is a nested element, support distinct locales for displaying and formatting data
+1. DISPLAY - Category used for displaying data about the locale
+2. FORMAT - Category used for formatting dates,numbers or currencies
+
+public class LocaleCategory {
+    public static void print(Locale locale, double money){
+        System.out.println(locale.getDisplayLanguage() + ", " + NumberFormat.getCurrencyInstance().format(money));
+    }
+
+    public static void main(String[] args) {
+        var spain = new Locale("es" , "ES");
+        var money = 1.23;
+
+        Locale.setDefault(Locale.US);
+        print(spain, money);
+
+        Locale.setDefault(Locale.Category.DISPLAY, spain);
+        print(spain, money);
+
+        Locale.setDefault(Locale.Category.FORMAT, spain);
+        print(spain, money);
+
+    }
+}
+
+Loading properties with ResourceBundle
+    ResourceBundle contains locale-specific objects to be used by a program. It is like a map with keys and values. The resource bundle is commonly stored in a properties file
+   Properties file is a text file in a specific format with key/value pairs
+
+public class MyResourceBundle {
+    public static void main(String[] args) {
+        var us = new Locale("en","US");
+        var fr = new Locale("fr", "FR");
+        print(us);
+        print(fr);
+
+        var rb1 = ResourceBundle.getBundle("Zoo" , us);
+        rb1.keySet().stream()
+                .map(k -> k +": " + rb1.getString(k))
+                .forEach(System.out::println);
+    }
+
+    private static void print(Locale locale) {
+        var rb = ResourceBundle.getBundle("Zoo" , locale);
+        System.out.println(rb.getString("hello") + ", " + rb.getString("open"));
+    }
+}
+
+Zoo_en.properties
+hello=Hello
+open=The zoo is open
+name=en
+
+Zoo_fr.properties
+hello=Bonjour
+open=Le zoo est ouvert
+name=fr   
+
+
+Without Requested Locale, by default is en_US
+
+Zoo_en_US.properties
+name=en_US
+text=The Zoo
+helloByName=Hello, {0} and {1}
+
+With Requested Locale
+
+Zoo_fr_FR.properties
+name=fr_FR
+visitors = French Visitors
+
+public class PickingResourceBundle {
+    public static void main(String[] args) {
+        Locale.setDefault(new Locale("en","US"));//default locale
+        Locale locale = new Locale("fr","FR"); //requested locale
+
+        var rb = ResourceBundle.getBundle("Zoo");
+        System.out.println(rb.getString("name"));
+        /**
+         * Zoo_en_US
+         * Zoo_en
+         * Zoo
+         */
+
+        rb = ResourceBundle.getBundle("Zoo" ,locale);
+        System.out.println(rb.getString("name"));
+        /**
+         * Zoo_fr_FR
+         * Zoo_fr
+         * Zoo
+         *
+         * if requested locale(language,country) not present
+         * ------------------------------------------------
+         * Zoo_en_US
+         * Zoo_en
+         * Zoo
+         */
+
+        rb = ResourceBundle.getBundle("Zoo" ,locale);
+        System.out.print(rb.getString("hello"));
+        System.out.print(".");
+        System.out.print(rb.getString("text"));
+        System.out.print(" ");
+        System.out.print(rb.getString("open"));
+        System.out.print(" ");
+        System.out.print(rb.getString("visitors"));
+
+
+    }
+}
+
+Zoo.properties - No locale at all - default bundle
+name=no locale
+text=France Zoo
+
+
+Formatting Message
+MessageFormat - package java.text
+  - Support parametrized String values that take input values
+  - public static String format(String pattern,Object...arg)
+
+public class FormattingMessages {
+    public static void main(String[] args) {
+        var us = new Locale("en" , "US");
+        var rb = ResourceBundle.getBundle("Zoo",us);
+        String format = rb.getString("helloByName");
+        System.out.println(MessageFormat.format(format,"Muhammad","Shah"));
+    }
+}
+
+If still not found throws MissingResourceException
