@@ -422,8 +422,3 @@ The POST API will accept an employee object as request body. Using the parameter
 12. Start main class from camelProject
 13. Now create text file inside input folder which makes rest call to SpringBoot appl "employee" and create employee object . Once done in Main application we can see employee object will be created and prints 
 
-
-
-
-
-
