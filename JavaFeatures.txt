@@ -1230,7 +1230,7 @@ Option 				Description
 --module <name>
 
 4. -d              Describe the details of a module
---descrobe-module
+--describe-module
 
 5.--list-modules   List observable modules without running the program
 
@@ -1558,6 +1558,7 @@ Important notes:
     3. var cannot be initialized with null value without a type 
     4. var is not permitted in multiple variable declartion
     5. var cannot be used to initialize array
+    6. var cannot be used if return type is void 
 
 public class Main {
     {
@@ -2574,7 +2575,7 @@ public class Main { PSVM {
     }
     finally {
        if(e!=null) {
-          List<Runnable> t=e.shutdown();
+          List<Runnable> t=e.shutdownNow();
           System.out.println(t.size()+"tasks never got run");
        }
     }
@@ -2583,7 +2584,7 @@ public class Main { PSVM {
 }
 
 Start of main thread
-Tas 1: Simple Print
+Task 1: Simple Print
 2 tasks never got run
 End of main thread 
 
@@ -2747,7 +2748,7 @@ public class Main {
 
 Output:
 Start of main thread
-Result from the thread
+Return from the thread
 End of main thread
 
 Even though we asked to run 3 callable task, it just run anyone of task and whichever finishes the earliest it returns the response back and cancels the other 2 tasks 
@@ -3895,66 +3896,1431 @@ If still not found throws MissingResourceException
 
 
 
-Event Driven Architecture on Apache Kafka with Spring boot
-    An event is a change in state, it can be anything example ur credit card bill payment for this month and once u paid, the status of ur bill is changed from unpaid to paid or when taking an online exam the status is changed from not taken to taken or in ecommerce sites when adding an item to ur shopping cart, the new item added counts as an event and ecommerce site will react to it and number of items in ur cart will increment and also the value of that item will be added to ur total amount 
+Java 9
+   Java8 introduced in Mar 18th 2014, so almost after 3yrs, Java 9 introduced in Sep 21st 2017.
+   Until Java7, java is considered very powerful but after jav7 other languages are dominating Java like Python, Scala, Ruby, then only Java 8 came with so many new features
 
-What is Event driven architecture?
-   It is architectural paradigm that uses events to trigger and communicate between loosely coupled appl or services, these events will need to be published to an event broker platform and sent over to consuming applications. An event may contain a state at a certain point in time like the status of amount paid, the items in ur shopping cart or notification like order has been shipped or certain amount has been credited to ur account
+Features:
+1. JShell 
+   - To learn java in the beginning stage without difficult some tool is required called JShell
 
-Components of Event driven architecture
-  1. Producers
-        The producers are app or services that publish events to an event broker platform
-  2. Router
-        Event router or broker which is platform ot middleware that takes in events and routes them to their respective consuming applications 
-  3. Consumers 
-        It is another appl or service that consumes to particular topic in an event router and receives the event or stream of events and does something with it like save state to persistent storage or for analytics 
+>jshell PRINTING
+Jshell> print("Hello world");
+jshell> 10+20
+jshell> 10<20
 
-Producers and consumers are decoupled which means they are not aware of each other so we can modify, deploy and scale them independently as necessary 
+2. JPMS(Java Platform Module System)
+       Java8 introduced in 2014 and Java9 in 2017, but JPMS concept development was started from 2005      
+      JPMS (ie) from Java9 everything is modularized. In Java9, this JPMS concept came as part of project Jigsaw. 
 
-Event driven Architecture Model
-1. Publish Subscribe model
-      When the event or messaging platform for our case that will be apache kafka keeps track of subscription. When an event is published it sends an event to one or more consumers. After an event is received it cannot be replayed or u can no longer refer to it again at a later time and new subscribers do not see that event 
+    Until Java1.8, we have to develop multiple classes, interfaces, enums and convert these things inside packages and all these packages will be convert into jar files, by placing jar files in classpath we can run our application. So until Java8 our appl development is jar file based, by keeping all jar files in classpath we can execute our appl. From Java9 onwards instead of jar, a new construct is used called module. Modules also group of packages but it contains configuration information inside a file called module-info.java. So modules will contains group of package and module-info.java, by mistake if we not write module-info.java, then JVM will never consider as module 
+    From Java9, JDK itself is modularized. In Java8 we have rt.jar,tools.jar etc all this are applicable only from Java8, from Java9 onwards no more rt.jar,tools.jar everything is remembered. So total JDK itself is divided into several modules, all predefined Java classes from rt.jar in Java8 are divided into several modules in Java9 something like 98 modules like java.base, java.rmi, java.logging, java.desktop, java.sql modules. Inside JDK9 folder we cant see jre, instead we have jmods folder where we can see all modules
 
-2. Event Stream model
-     Here events are written as a log and strictly ordered within a partition, consuming applications arent necessarily subscribed to receive individual events rather they receive stream or an unbounded flow of events and they can read from any part of that event 
+java.base module - contains commonly used package like java.lang,java.util and its subpackage,java.io etc
+java.sql module - contains java.sql, javax.sql packages
+java.rmi module - contains java.rmi package
+java.desktop module - contains awt, swing packages
 
-Benefits of Event driven architecture
-1. Asynchronous
-      Event driven architecture asynchronously receive and process events without getting blocked by earlier events 
+To return which class in which module, we use
+class Test { PSVM {
+     System.out.println(String.class.getModule()); //java.base
+     System.out.println(Connection.class.getModule()); //java.sql
+     System.out.println(ArrayList.class.getModule()); //java.base
+}}
+
+    Until java8 everything is jar file based in Java, the problem with jar file approach is
+    1. If JVM unable to identify required .class file then we get NoClassDefFoundError  in middle of program
+    2. Version conflict, if two jar files contains class with same name, maybe at runtime JVM may pick wrong version
+    3. security problem, since anyone can access from jar file
+    4. To execute simple hello world program we required to maintain almost 400mb jre in client machine. So JDK and JRE have monolithic structure and bigger size 
+
+All these problem related to jar file is called Jar Hell or classpath hell. To overcome these problems, Java9 comes with JPMS concept. 
+    - So in modular programming JVM will check in the beginning only that all dependent modules are available or not, if anything is missing immediately JVM says so and so module is missing, so NoClassDefFoundError in modular programming
+    -  In modular programming contains modules which has collection of packages,and contain a configuration file called module-info.java, where we specify which class is required in which module, so choosing wrong file by JVM wont occur 
+    - Which u want to export only that package will available to outside world, so security problem so wont be there
+    - In JRE, rt.jar is divided into several modules, which module is required only that module my JRE is going to use, so size of JRE by default is small   
+
+Difference between jar file and modules
+
+Jar file								Modules
+1. Jar is a group of packages                1. Module is also group of packages
+and each package contains several classes     and each package contain several                                               classes.Module can also contain                                                module-info.java to hold module specific                                             dependencies and configuration info
+
+2. In jar file, there is no way to specify  2. For every module we have to maintain dependent jar files information	               module-info.java to
+				               specify module dependencies
+
+3. There is no way to check all jar file    3. JVM will check all module dependencies at the beginning only. So in      dependencies at the beginning only                                                  with the help of module-                                                           info.java. If any dependent
+the middle of program execution there may     module is missing then JVM wont start                                               its execution, so no
+be a chance of NoClassDefFoundError           chance of NoClassDefFoundError
+
+4. In the classpath the order of jar files    4. In the module-path order is not                                                important. JVM will 
+important and JVM will always considers from   always check from the dependent                                                 module only for the 
+left to right for the required class files.    required class files. Hence there is                                                no chance of version
+If multiple jars contains same .class file    conflicts and abnormal behaviour of                                               the application
+then there may be a chance of version 
+conflicts and result to abnormal behaviour
+of our application
+
+5. In jar file there is no mechanism to	     5. In module there is a mechanism to                                                 control access to the 
+control access to packages. Everything present  packages. Only exported packages                                                 are visible to other
+in jar file is public to everyone, any person   modules, hence there is no chance                                                 of security problem
+is allowed to access any component from the jar
+file. Hence there may be a chance of security
+problems
+
+6. Jars follows monolithic structure and appl  6. Modules follow distributed                                                 structure and appl will become 
+will become heavy weight and not suitable      light weight and suitable for small                                                devices
+for small devices
+
+7. Jar files approach cannot be used for IOT  7. Used for IOT device and                                                  microservice 
+devices and microservices
+
+     
+What is module?
+    - Module is group of package, each package will contain group of class file, every module should complusorly contain module-info.java which hold dependency, security related information
+
+How to write module-info.java?
+   - We have to use keyword "module" followed by modulename(any name)
+    module modulename {
+      //module specific dependency like which represents
+      //1. what other modules requried by this module
+         requires moduleA;
+         requires moduleB;
+      //2. What packages exported by this module
+         exports pack2; //so this package is available for other modules
+         exports pack3;
+}
  
-2. Scalable and Failure independent failures
-      Since producer and consumer services are loosely coupled, they fail independently and the event router should be elastic enough to be able to scale as needed and accomdate in workloads 
+Steps to create module:
+1. create moduleA folder
+2. Inside moduleA,create module-info.java
+     module moduleA {
   
-3. Auditing and Point-in-time recovery 
-     The event router or broker acts as a centralized location to audit ur appl. These events contain snapshots of a state u could use this to recover objects in their previous state or any state at certain point of time by rewinding events from the past 
+     }
+3. Create pack1 folder inside moduleA folder
+4. Inside pack1 folder, create Test.java
 
-Drawbacks
-1. Complexity
-     There is an added routing middleware which could add to the complexity of the architecture of ur system 
-2. Non ACID compliant
-     Due to asynchronous distributed nature of event driven architectures we are going to have difficulties in maintaining transactional support 
-3. Cost
-     Pay a usually expensive subscription to a provider like Confluent 
+package pack1;
+public class Test {
+   public static void main(String args[]){
+      System.out.println("Hello world");
+   }
+}
 
-Apache Kafka
-   The event router that we will be using to implement simple event driven architecture is Apache Kafka 
-   Apache Kafka is an open source, distributed event streaming platform used by more than 1000 companies for high performance data pipelines, streaming analytics, data integration. It is originally developed by a team from linkedin but later open sourced in 2011 by with apache
+5. Copy moduleA folder inside src folder
+6. compile module
+   c:>javac --module-source-path src -d out -m  moduleA
+-Complier will compile moduleA and find moduleA inside src folder, after compilation generate .class file inside out folder 
+  - Creates out folder with .class file
+7. Run the program using
+  >java --module-path out -m moduleA/pack1.Test
+  
+Case 1:
+   If module-info.java is not available then the code wont compile and we will get error. Hence module-info.java is mandatory for every module
 
-Producers and Consumers
-    Using Apache Kafka u could be having multiple appl or services that write events to a Kafka cluster, while at the same time you could also have multiple consumer apps that subscribe or stream events from Kafka 
-    A kafka cluster is a collection of brokers, we can think of these brokers as like servers in data center and they networked and function together as a single cluster. Brokers could be actual physical servers or single rack or VM 
-    Zookeeper is in charge of cluster management and also in failure management it decides which among the replicated brokers can be the new leader when broker fails. Brokers are replicated for redundancy which makes Kafka a more fault tolerant platform. Access Control Lists(ACL) are also stored in Zookeeper 
+Case 2:
+   Every class inside module should be part of some package, otherwise we will get compile time error saying "unnamed package is not allowed in named modules"
 
-Topics and Partitions
-    A broker can store multiple topics where producers write events on. 
-    A topic is a collection of related events or messages. When a producer app produces an event, u will need to specify the topic where u want to write or publish it to. The number of topics that can be created in Kafka is theoretically unlimted
-    Partition breaks up a topic into logical pieces and those topics are allocated into different brokers
+Case 3:
+    The module name should not end with digits(like module1, module2 etc), then we will get warning message at compile time 
 
-Scalable and Fault tolerant
-    The topics can scale forever in an individual broker which could be actual server or VM's, so broker is actually managing multiple partitions from different topics. Instead of forcing these brokers to scale up as the topic size increases, we scale out by distributng the partitions of a topic into multiple brokers and this significantly improves the IO and parallelization performance of the cluster 
+Various ways to compile module
+1. javac --module-source-path src -d out -m moduleA
 
-   Apache kafka is fault tolerant because the partitions are also replicated into different brokers. Replication factor which u could configure in ur application, consider we have replication factor = 3 so when broker goes down which have certain partition then we have backup of that partition another broker. Among the replicas of partition there is always a leader partition where producers and consumers write and read events respectively. When leader partition goes down unexpectedly then any of the follower partitions can ve promoted as new leader which is decided by kafka using zookeeper
+2. javac --module-source-path src -d out --module moduleA
+
+3. javac --module-source-path src -d out src/moduleA/module-info.java src/moduleA/pack1/Test.java
+
+4. javac --module-source-path src -d out c:/training/src/moduleA/module-info.java c:/training/src/moduleA/pack1/Test.java
+ 
+Various ways to run a module
+1. java --module-path out -m moduleA/pack1.Test
+
+2. java --module-path out --module moduleA/pack1.Test
+
+3. java --module-path out --add-modules moduleA pack1.Test
+      - used in multiple modules from different location
+
+
+Optional dependencies
+     - If dependent module should be available at compile time and optional at runtime, then such type of dependency is called optional dependency. We can specify optional dependency using static keyword
+
+Syntax: requires static 'modulename'
+
+module moduleA {
+
+}
+
+module moduleB {
+   requires moduleA;   //mandatory
+   requires static moduleC;   //optional
+}
+
+module moduleC {
+
+}
+
+At compile time moduleB and moduleC is compulsorly available but at runtime moduleC is optional 
+
+Cyclic dependencies
+    If moduleA depends on moduleB and moduleB depends on moduleA, such type of dependency is called cyclic dependency
+    Cyclic dependencies between the modules are not allowed in Java9.
+
+module moduleA{
+   requires moduleB;
+}
+
+module moduleB{
+   requires moduleA;
+}
+
+>javac --module-source-path src -d out -m moduleA,moduleB
+   - compilation error
+
+In all predefined modules there is no chance of cyclic dependency.
+
+Qualified exports
+     Sometimes a module can export its package to specific module instead of every module. Then the specified module only can access. Such type of exports are called Qualified Exports
+
+Syntax: export pack1 to module1, module2....
+
+module exporterModule {
+   exports pack1; //export pack1 to all modules
+   exports pack1 to moduleA; //export pack1 to only moduleA
+   exports pack1 to moduleA, moduleB; //export pack1 to both moduleA, moduleB
+}
+
+exportermodule:
+
+module-info.java
+module exportermodule {
+    exports pack1;
+    exports pack2 to moduleA;
+    exports pack3 to moduleA, moduleB;
+}
+
+
+A.java
+package pack1;
+public class A  {  }
+
+B.java
+package pack2;
+public class B  {  }
+
+C.java
+package pack3;
+public class C  {  }
+
+moduleA:
+
+Test.java
+package packA;
+import pack1.A;
+import pack2.B;
+import pack3.C;
+public class Test {
+  public static void main(String args[]) {
+     System.out.println("Qualified export");
+  }
+}
+
+module-info.java
+module moduleA {
+   requires exportermodule;
+}
+
+For moduleA, all 3 packages are available. Hence we can compile and run moduleA successfully.
+  >javac --module-soure-path src -d out -m exportermodule,moduleA
+  >java  --module-path out -m moduleA/packA.Test
+
+moduleB:
+module-info.java
+module moduleB {
+   requires exportermodule;
+}
+
+Test.java
+package packB;
+import pack1.A;
+import pack2.B;  //compiler error 
+import pack3.C;
+public class Test {
+  public static void main(String args[]) {
+     System.out.println("Qualified export");
+  }
+}
+
+>javac --module-soure-path src -d out -m exportermodule,moduleB
+   - Compiler error 
+
+Note:
+- requires used only for modules, exports used only for packages
+- requries and exports can be used only for one modules and packages respectively, if we want to use for multiple then we create separete requires and exports 
+
+Which of the following directives are valid inside module-info.java?
+requires moduleA;  --correct
+requires moduleA,moduleB; --error
+requires moduleA.pack1; --error
+requires moduleA.pack1.A; --Error
+requires static moduleA; --correct
+requires transitive moduleA; --Correct
+exports pack1; --Correct
+exports pack1,pack2; --error
+exports moduleA; --error
+exports moduleA.pack1.A; --error
+exports pack1 to moduleA; --Correct
+exports pack1 to moduleA,moduleB; --Correct
+
+Module Graph
+   - The dependencies between the modules can be represented by using special graph called Module Graph
+   - All predefined modules requires java.base module either directly or indirectly, hence this module acts as BASE module for all java modules
+
+Rules for Module Graph
+   - Two modules with the same name is not allowed
+   - Cyclic dependency is not allowed between the modules and hence Module Graph should not contain cycles
+
+Observable modules
+   - The modules which are observed by JVM at runtime are called Obervable modules
+   The modules we are specifying with --module-path option with java command are observed by JVM and hence these are observable modules.
+   >java --module-path out -m moduleA/pack1.Test
+
+Aggregator module
+    Sometimes a group of modules can be reused by multiple other modules. Then it is not recommended to read each module individually. We can group those common modules into a single module, and we can read that modules directly. This module which aggregates functionality of several modules into a single module is called Aggregator module. If any module reads aggregator module then automatically all its modules are by default available to that module.
+
+module aggregatorModule {
+   requires transitive moduleA;
+   requires transitive moduleB;
+   requires transitive moduleC;
+}
+
+Aggregator module not required to contain single class file, just it "requires transitive" of all common modules
+   If any module reads aggregatorModule automatically all 3 modules are by default available to that module also
+
+module useModule {
+   requires aggregatorModule;
+}
+
+Now useModule can use functionality of all 3 modules moduleA, moduleB, moduleC
+
+1. moduleA:
+
+module-info.java:
+  module moduleA {
+     exports pack1;
+  }
+
+A.java
+package pack1;
+public class A {
+   public void m1() {
+     System.out.println("moduleA method");
+   }
+}
+
+2. moduleB:
+
+module-info.java:
+  module moduleA {
+     exports pack2;
+  }
+
+B.java
+package pack2;
+public class B {
+   public void m2() {
+     System.out.println("moduleB method");
+   }
+}
+ 
+3. moduleC
+
+module-info.java:
+  module moduleC {
+     exports pack3;
+  }
+
+C.java
+package pack3;
+public class C {
+   public void m3() {
+     System.out.println("moduleC method");
+   }
+}
+
+4. aggregatorModule
+
+module-info.java:
+  module aggregatorModule {
+     requires transitive moduleA;
+     requires transitive moduleB;
+     requires transitive moduleC;
+  }
+
+4. useModule:
+
+module-info.java:
+  module useModule {
+     requires aggregatorModule;
+  }
+
+Test.java
+package packA;
+import pack1.A;
+import pack2.B;
+import pack3.C;
+public class Test{
+   public static void main(String args[]) {
+     System.out.println("Aggregator module demo");
+     A a=new A();
+     a.m1();
+     B b=new B();
+     b.m2();
+     C c=new C();
+     c.m3();
+   }
+}
+
+>javac --module-source-path src -d out -m moduleA,moduleB,moduleC,aggregatormodule,useModule
+
+>java --module-path out -m useModule/packA.Test
+
+Packaging naming Conflicts
+   Two jar files can contain a package with same name, which may creates version conflicts and abnormal behavior of the program at runtime
+   But in Java9 module system, two modules cannot contain a package with same name, otherwise we will get compile time error. Hence in module system, there is no chance of version conflicts and abnormal behavior of the program
+
+1. moduleA
+
+module-info.java:
+  module moduleA {
+     exports pack1;
+  }
+
+A.java
+package pack1;
+public class A {
+   public void m1() {
+     System.out.println("moduleA method");
+   }
+}
+
+
+2. moduleB
+
+module-info.java:
+  module moduleB {
+     exports pack1;
+  }
+
+B.java
+package pack1;
+public class B {
+   public void m1() {
+     System.out.println("moduleB method");
+   }
+}
+
+3. useModule
+
+Test.java
+package packA;
+public class Test { PSVM {
+    System.out.println("Packaging name conflicts");
+}}
+
+module-info.java
+  module useModule {
+     requires moduleA;
+     requires moduleB;
+  }
+
+>javac --module-source-path src -d out -m moduleA,moduleB,useModule
+   - compiler error 
+
+Module Resolution Process
+    In the case of traditional classpath, JVM wont check the required .class files at the beginning. While executing program if JVM required any .class file, then only JVM will search in the classpath for the required .class file. If it is available then it will be loaded and used and if ir is not avialable then at runtime we will get NoClassDefFoundError which is not at all recommended.
+   But in  modular programming, JVM will search for the required modules in the module-path before it starts execution. If any module is missing at the beginning only JVM will identify and wont start its execution. Hence in modular programming there is no chance of getting NoClassDefFoundError in the middle of program execution.
+
+>java --module-path -d out --show-module-resolution -m useModule/packA.Test
+
+
+Transitive dependency
+   - Consider myModuleA requires myModuleB and myModuleB requires myModuleC. M2 class of myModuleB contains a method and that method returns reference of type M3 class of myModuleC. The method is M2 class which return reference of type M3 is called by main() of M1 class
+
+1. myModuleC
+
+module-info.java:
+   module myModuleC {
+      exports myPack3;
+   }
+
+M3.java:
+package myPack3;
+public class M3 {
+   public void methodM3(){
+       System.out.println("methodM3");
+   }
+}
+
+2. myModuleB
+
+module-info.java:
+  module myModuleB {
+      requires myModuleC;
+      exports myPack2;
+  }
+
+M2.java:
+package myPack2;
+import myPack3.M3;
+public class M2 {
+    public M3 methodM2() {
+      System.out.println("methodM2");
+      M3 m=new M3();
+      return m;
+    }
+}
+
+3. myModuleA
+
+module-info.java:
+   module myModuleA {
+      requires myModuleB;
+   }
+
+M1.java:
+package myPack1;
+import myPack2.M2;
+import myPack3.M3;
+class M1 { PSVM {
+     M2 m=new M2();
+     M3 c=m.methodM2();
+     c.methodM3();
+   }
+}
+
+>javac --module-source-path src -d out -m myModuleA,myModuleB,myModuleC
+   - compilation error 
+
+Dependency on myModuleA on myModuleC is called transitive dependency. To use myModuleB then myModuleA also need to require myModuleC. Even if myModuleA is intended to use only myModuleB, but for using myModuleB, myModuleA need to require to use myModuleC, this is called transitive dependency 
+
+In module-info.java of myModuleB, we use
+
+module myModuleB {
+      requires transitive myModuleC;
+      exports myPack2;
+  }
+  
 
 
 
+3. JLINK(Java Linker) - to create our own customize jre, so Java is suitable for portable devices, microservices, iot devices. The size of Java env is reduced using JLink
+       We develop helloworld program and in order to run we need JRE in client machine which contain rt.jar which is around 60mb size which contain 4300+ classes. So huge memory is needed to run java appl with JRE. 
+      But from JDK1.9 we can create our own JRE only with required things, so we can use Java for portable devices, IOT devices 
+
+4. Previously we send http request through browsers but from Java appl if we want to send http request to web server then we use HTTP/2 client 
+     Until Java8 if we want to send http request, we use HttpUrlConnection which introduced in 1997. It is difficult to use and per TCP/IP connection we can send only one request so performance is down, it provide support only for text, it works only in synchronous mode. Later developers use 3rd party like Apache HttpClient and Google HttpClient to communicate 
+    Finally Http/2 client is used from JDK9, it is easy to use and we can send multiple request, it supports both text and binary based, can work in sync and async mode 
+
+5. Process API updates, where we can communicate to processor from Java9 
+    Until Java8, it is very difficult to communicate from Java appl to processor, we required to write lengthy code and 3rd party library 
+    If we run java program, JVM is going to run, JVM itself is one process, so how to get a process ID of the current running process, create my own process from Java program, we want to destroy already existing process, we want to list out complete information of ur process (ie) who is owner, by which command these process got started, which is parent process, child process etc.
+   If we want to print current process id, then we use 
+     long pid=ProcessHandle.current().pid();
+
+6. Private methods inside interface for code reusability
+
+Need for private methods
+     If several default methods having same common functionality, then there may be a chance of duplicate code, so we can define that common code in private method and call that in default method which required that functionality 
+
+Advantage:
+       So without affecting implementation class, if we want to  get code reusability we can use private methods 
+       We can expose only intended methods to implementation class, because interface private methods are not visible to implementation class 
+
+interface A {
+   public abstract method;       - until JDK1.7
+   public static final variable;  - until JDK1.7
+           +
+   default methods                - until JDK1.8
+   static methods                 - until JDK1.8
+           +
+   private methods                 - until JDK1.9
+}
+
+Why default methods in JDK8?
+     Whenever we implement an interface, that class should override the methods declared in interface. But for single interface we can have multiple implementation of classes available
+     Now we want to add new method to an interface, then all implementation classes would be affected, so we introduced default methods (ie) without affecting implementation classes we can add new methods to an interface 
+
+static method - If my functionality is no way related to object (ie) static method, instead of defining in class we can define in interface 
+
+
+
+7. try with resources enhancement
+       In jdk1.7, resources will be closed automatically once control reaches the end of try block, no need to use finally block so readability is also improved
+       Until JDK1.8, whatever resources u r using it should be part of try block, we cant declare outside try block (ie) or we have to create new reference variable
+
+try(FW fw=new FW("a.txt");FR fr=new FR("b.txt");){
+---
+}
+try(FW fw1=fw;FR fr1=fr;){
+---
+}
+    But in JDK1.9, we can use the resources which is already created 
+FW fw=new FW("a.txt");
+FR fr=new FR("b.txt");
+try(fw;fr){
+---
+}
+
+Example:
+
+class MyResource implements AutoCloseable {
+    MyResource() { SOP("Resource creation"); }
+    public void doProcess() { SOP("Resource opening"); }
+    public void close(){ SOP("Resource closing"); }
+}
+
+Java6:
+public class Test {
+ public static void java6(){
+     MyResource r=null;
+   try {
+       r=new MyResource();
+       r.doProcess();
+   }
+   catch(Exception e){
+       SOP("Exception caught");
+   }
+   finally {
+       if(r!=null){
+           r.close();
+       }
+   }
+}
+
+public static void java7(){
+   try(MyResource r=new MyResource();)
+   {
+         r.doProcess();
+   }
+   catch(Exception e){
+       SOP("Exception "+e);
+   }
+}
+
+public static void java9(){
+   MyResource r=new MyResource();
+   try(r)
+   {
+         r.doProcess();
+   }
+   catch(Exception e){
+       SOP("Exception "+e);
+   }
+}
+
+//We can define multiple resources in Java9 also :
+public static void multiResource() {
+ MyResource r1=new MyResource();
+ MyResource r2=new MyResource();
+ MyResource r3=new MyResource();
+ MyResource r4=new MyResource();
+   try(r1;r2;r3;r4)
+   {
+         r1.doProcess();
+         r2.doProcess();
+         r3.doProcess();
+         r4.doProcess();
+   }
+   catch(Exception e){
+       SOP("Exception "+e);
+   }
+}
+public static void main(String[] args){
+    java6();
+    java7();
+    java9();
+    multiResource();
+ }
+}
+
+Problem with JDK7:
+    1. The resource reference variables which are create doutside of try block cannot be used directly in try with resources 
+
+
+8. Factory method to create unmodifiable collection
+        Until JDK1.8, we create an unmodifiable collection using 
+    List<String> l=new ArrayList<>();
+        l.add("one");
+        l.add("two");
+    List<String> l1=Collections.unmodifiableList(l);
+  But in JDK1.9, if we want to create immutable collection object then we use
+     List<String> l3=List.of("One","two","three");
+
+Set s=Set.of("one","two");
+Map m=Map.of()
+Map m=Map.ofEntries();
+
+List.of() - empty list
+List.of("A") - list with 1 elt
+List.of("A","B") - list with 2 elt
+.
+.
+List.of(---) - list of 10 elt overloaded method are available
+List.of(E...e) - more than 10 elts we use varargs
+
+
+Set.of() - empty set
+Set.of("A") - list with 1 elt
+Set.of("A","B") - list with 2 elt
+.
+.
+Set.of(---) - list of 10 elt
+Set.of(E...e) - more than 10 elts
+
+Map.of() - empty map
+Map.of(k,v) - map with 1 key value
+Map.of(k1,v1,k2,v2) - map with 2 key value
+.
+.
+Map.of(---) - map of 10 key value pair
+
+eg: Map<Integer, String> map = Map.of(101, "PP", 102, "QQ", 103, "RR");
+
+Map.ofEntries(E...e) - more than 10 key value 
+
+eg: Map<Integer, String> map = Map.ofEntries(
+		entry(101, "PP"),
+		entry(102, "QQ"),
+		entry(103, "RR")
+	);
+
+1. It is used to create unmodifiable collection and we perform any operation then it raise UnsupportedOperationException
+2. In all factory methods we are not allowed to use null, then we get NullPointerException
+3. If we use duplicate objects in Set and duplicate keys in Map, then we get IllegalArgumentException
+
+9. Stream API enhancement
+       - default methods like takeWhile() and dropWhile()
+       - static method called Stream.iterate() with 3 args with conditional check 
+Stream.iterate(1,x->x<5,x>x+1).forEach(System.out::println);
+       - static method called Stream.ofNullable() to check NPE
+List l=Stream.ofNullable(100).collect(Collectors.toList());
+sop(l); //100
+
+List l=Stream.ofNullable(null).collect(Collectors.toList());
+sop(l); //[]
+
+List<String> l=new ArrayList<>();
+l.add("A");
+l.add("B");
+l.add(null);
+l.add("C");
+l.add("D");
+l.add(null);
+System.out.println(l);
+
+List<String> l3=l.stream().flatMap(o->Stream.ofNullable(o)).collect(Collectors.toList());
+sop(l3);
+
+Map<String,String> hm=new HashMap<>();
+hm.put("A","Apple");
+hm.put("B","Banana");
+hm.put("C",null);
+hm.put("D","Dog");
+hm.put("E",null);
+
+List<Stream> l2=m.entrySet().stream().flatMap(e->Stream.ofNullable(e.getValue())).collect(Collectors.toList());
+sop(l2);
+
+10. Diamond operator enhancement
+       From JDK1.5, <> is applied for normal classes. But from JDK1.9 onwards <> can applied to anonymous inner classes
+
+Iterator<String> itr=new Iterator<>(){
+  ---
+}
+
+11. safevarargs annotation
+       If one type of object(like String) pointing to another type of object(like Integer) at runtime, then it throws ClassCastException, this typeof scenario is called Heap Pollution problem 
+     eg: Student s1=customerObject;
+       This annotation introduce in Java7. To suppress warning related to heap pollution problem we use SafeVarargs.
+       If we use varargs with generics, there may be problem of heap pollution problem,then compiler will show warning message. So if u want to suppress those warnings then we use Safevarargs annotation
+        Until Java1.8, SafeVarargs used in static method, final method and constructor, but from Java9 it can use it for private methods 
+
+public class Test {
+   @SafeVarargs
+   public Test(List<String>...l){ }
+   @SafeVarargs
+   public static void m1(List<String>...l){ }
+   @SafeVarargs
+   public final void m2(List<String>...l){ }
+   @SafeVarargs
+   private void m3(List<String>...l){ }
+}
+
+public class Test {
+    public static void main(String[]args){
+       List<String> l1=Arrays.asList("A","B");
+       List<String> l2=Arrays.asList("C","D");
+    }
+    //@SafeVarargs
+    public static void m1(List<String>...l){
+         for(List<String> l3:l) {
+            System.out.println(l3);
+         }
+    }
+ }
+}
+    So when we compile the above program, we get warning message 
+>javac -Xlint:unchecked Test.java
+    So if we want to suppress those warning we use above annotation
+   
+
+12. G1 garbage collector which came from jdk1.6 version, but from jdk1.9 it is default garbage collector 
+     Generally we have different garbage collector like 
+  - Serail GC
+  - Parallel GC - until jdk1.8 default is parallel GC 
+  - Concurrent Mark Sweep GC
+  - G1 GC, not work based on generation, here total heap is divided into multiple regions. G1GC will choose one region where more number of objects eligible for GC and destroy that region, so performance wise it is best GC 
+  
+
+java NIO
+   - We can use nio package to read from a file or write to a file
+   - The basic reason to launch java.nio package since it was providing the multithreading capability to io library and we cannot do this in existing io library. So nio means non blocking io that you dont want to block ur threads while ur reading from file or writing to file.
+   - Non blocking io is because whenever you are reading a file or writing to file, the thread gets blocked until the whole life is written or the whole file is read, so the nio package provides an improvement over that, it provides an improvement in a way that you can read the file into different thread but at the same time move on to an another thread and writes to the file, so we get this multithreading capabilities and non blocking capabilities by the classes provided by java.nio
+    - Consider we are trying to read something then the read operation will be happening from the channel into the buffer. Similarly the write operation will be happening in reverse way (ie) to the channel from the buffer 
+
+Path - represents the path to actual file or directory you are willing to work
+
+Paths - helps to load the Path from a String or a URI
+
+In Java nio package, inorder to refer to path we use Path interface which is used to refer the path. To create instance of Path interface we use Paths class with factory method called get()
+    Why we have an interface or factory method to refer to paths instead of class because in legacy way of working with class (ie) java.io.File class, the problem is the paths are not same in all OS. When we use Path no matter for any OS, it refers to path. So when we run internally it refers to a class implementation called sun.nio.fs.WindowsPath
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class Example1 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("a/b/c");
+
+    Path p2 = Paths.get("a", "b", "c");
+
+    System.out.println(p1);
+    System.out.println(p2);
+    System.out.println(p1.getClass());
+  }
+}
+
+Path Operations:
+
+public class Example2 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("a/b/c/d"); // relative
+    Path p2 = Paths.get("/c/d"); // absolute since it start with /
+    Path p3 = Paths.get("C:/a/b/c"); // absolute
+
+    System.out.println(p1.getFileName()); // d
+    System.out.println(p1.getRoot()); // null
+    System.out.println(p1.getParent());  // a/b/c
+
+    System.out.println(p2.getFileName());
+    System.out.println(p2.getRoot());
+    System.out.println(p2.getParent());
+
+    System.out.println(p3.getFileName());
+    System.out.println(p3.getRoot());
+    System.out.println(p3.getParent());
+    System.out.println(p3.getName(1));
+  }
+}
+
+Example 3:
+    Here we create unnormalized path which means the shorter version of path 
+   ./ - current dir    ../ - parent directory 
+We can normalize and reduce to smaller path using normalize(). We can normalization when we find current dir or parent dir, current dir we can simply remove it, because it is samething with or without, so now we have 
+   a/b/c/./././d/../../c
+   a/b/c/d/../../c
+When we have parent dir, it will always remove the file up one level,so finally we have a/b/c
+    a/b/c/d/../../c
+    a/b/c/../c
+    a/b/c
+
+
+public class Example3 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("a/b/c/./././d/../../c");  // ./  ../
+
+    /**
+     * a/b/c/./././d/../../c    ---->    a/b/c
+     */
+
+    System.out.println(p1.normalize());
+
+    Path p2 = Paths.get("a/../../../b"); // relative
+
+    /*
+    *  ../../b (we dont have parent to remove it after a/../
+     */
+    System.out.println(p2.normalize());
+
+    Path p3 = Paths.get("/a/../../../b"); // absolute /b
+
+    /*
+        /a/../../../b
+        /../..b  - in this case parent dir acts like current dir so we can just remove it 
+        /b
+    */
+        
+
+    System.out.println(p3.normalize());
+  }
+}
+
+
+Example 4
+   - resolve is kind of concatentation of paths 
+   - For relative path is just simple concatentation
+   - For absolute path
+public class Example4 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("a/b/c");  //relative
+    Path p2 = Paths.get("d/e/f");  //relative
+
+    Path p3 = p1.resolve(p2); // a/b/c/d/e/f
+
+    System.out.println(p3);
+
+    Path p4 = p2.resolve(p1); // d/e/f/a/b/c
+
+    System.out.println(p4);
+
+  //If one path is absolute and another is relative, if absolute path is first and relative is second then it works as concatenation
+    Path p1 = Paths.get("/a/b/c");  //absolute
+    Path p2 = Paths.get("d/e/f");  //relative
+
+    Path p3 = p1.resolve(p2); // /a/b/c/d/e/f
+
+    System.out.println(p3);
+
+    //If absolute path is second then it prints always absolute path
+
+     Path p4 = p2.resolve(p1);  // /a/b/c
+
+    //If both are absolute then it prints always second absolute path
+
+     Path p1 = Paths.get("/a/b/c");  //absolute
+    Path p2 = Paths.get("/d/e/f");  //absolute
+
+    Path p3 = p1.resolve(p2);  // /d/e/f
+  }
+}
+
+
+Example 5:
+   - 0th index in getName dosent start from root 
+
+public class Example1 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("C:/a/b/c/d");  //absolute
+
+    System.out.println(p1.getRoot()); // C:\
+    for (int i=0; i<p1.getNameCount(); i++) {
+      System.out.println(p1.getName(i));
+    }
+  }
+}
+
+Example 6:
+   subpath - part of path
+
+public class Example2 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("C:/a/b/c/d");
+
+    Path sp = p1.subpath(0, 3); //begin to end-1
+
+    System.out.println(sp);  // a/b/c
+  }
+}
+
+
+Example:
+     relativize() tells how to get Path p1 to Path p2,  it can be used for both relative or both absolute. Imagine in cmd prompt, if we want to get to another path then we give cd in linux or windows env and we specify the relative path.
+    So this method tells what u write in cd command line to get from p1 to p2  
+
+public class Example3 {
+
+  public static void main(String[] args) {
+    Path p1 = Paths.get("b/c/d");
+    Path p2 = Paths.get("b/q/w");
+     
+    //In p1, from d we call parent dir it goes to c, then again parent dir it goes to b, then q then w
+    // cd ../../q/w
+
+    Path p3 = p1.relativize(p2);//it returns path to move from p1 to p2
+
+    System.out.println(p3);
+
+//If we relativize absolute and relative path or other way we get an IllegalArgumentException 
+    Path p1 = Paths.get("C:/b/c/d"); // absolute
+    Path p2 = Paths.get("b/q/w"); // relative
+
+    Path p3 = p1.relativize(p2); // throws an exception
+
+    System.out.println(p3);
+  }
+}
+
+
+Example:
+   - createFile() used to create a file and all method in Files will throws IOException or FNFE
+
+public class Example5 {
+  public static void main(String[] args) throws IOException {
+    Path p1 = Paths.get("demo.txt");
+    Files.createFile(p1);  //creates demo.txt
+  }
+}
+
+Example:
+   - To delete we have delete() and deleteIfExists()
+   - delete() throws an exception if the file dosent exist, it works only for files and empty folder. If we try to delete the folder containing file it wont work 
+   - deleteIfExists() not throw an exception if the file dosent exist, instead it return boolean value false 
+
+public class Example6 {
+  public static void main(String[] args) throws IOException {
+    Path p1 = Paths.get("demo.txt");
+// Files.delete(p1);  //delete the file for 1st time, but 2nd time throws exception
+    var res = Files.deleteIfExists(p1);
+    System.out.println(res); // false
+  }
+}
+
+Example:
+   createDirectory() - create single dir in given path
+   createDirectories() - create multiple dir one inside the other 
+
+
+public class Example7 {
+
+  public static void main(String[] args) throws IOException {
+    Path p1 = Paths.get("demo.txt"); //create demo.txt with some content 
+    Path p2 = Paths.get("copied.txt");
+
+//    Files.copy(p1, p2); //create copied.txt and copy the contents of demo.txt
+    Files.move(p1, p2);  //like cut and paste, so demo.txt is replaced to copied.txt 
+  }
+}
+
+Example:
+    isSameFile() - comparing 2 files and returns boolean
+          - it dosent compare the contents, if we have 2 different files identical then isSameFile will return false
+          - it tells that 2 path precisely goes to same file in file system. For example one of them is file and other is symbolic link to the file, it returns true because both paths goes to same file 
+          - if one of file dosent exit it returns an exception 
+          - If both paths have same file and if both of them dosent exit, it dosent throw an exception and it returns true 
+
+
+public class Example8 {
+  public static void main(String[] args) throws IOException {
+    Path p1 = Paths.get("demo.txt");
+    Path p2 = Paths.get("copied.txt");
+    boolean res = Files.isSameFile(p1, p2);
+    System.out.println(res); //false
+
+    Path p3 = Paths.get("demo.txt");
+    Path p4 = Paths.get("demo.txt");
+    boolean res = Files.isSameFile(p3, p4);
+    System.out.println(res); //true
+
+    Path p1 = Paths.get("qwerty.txt");  //dosent exit
+    Path p2 = Paths.get("copied.txt");
+    boolean res = Files.isSameFile(p1, p2);
+    System.out.println(res); //throws exception
+
+    Path p1 = Paths.get("qwerty.txt");   //dosent exit
+    Path p2 = Paths.get("qwerty.txt");    //dosent exit
+    boolean res = Files.isSameFile(p1, p2);
+    System.out.println(res); //true
+  }
+}
+
+
+Example:
+     readAllLines() - used to read content of file. If it is text file we can read line by line and return list of all the lines 
+      byte[] readAllBytes() - read  binary file like images
+
+Both methods are used for files in small in size, because when u read lines from file we are getting data from external memory to internal memory so if heap is not large enough you will have outofmemory error 
+
+
+public class Example9 {
+  public static void main(String[] args) throws IOException {
+    Path p1 = Paths.get("demo.txt");
+    var res = Files.readAllLines(p1);
+    res.forEach(System.out::println);
+  }
+}
+
+
+java.nio.file.Files vs java.io.File
+ 
+1. Create vowel.txt file where we want to parse all rows and how many vowels have in this file
+
+So close no matter how far,
+Couldn't be much more from the heart
+Forever trusting who we are
+And nothing else matters.
+
+Example 1:
+   Implement using BufferedReader 
+
+public class Example1 {
+
+  private static String vowels = "aeiouAEIOU";
+
+  public static void main(String[] args) {
+    int n = 0;
+    try (
+        FileInputStream fis = new FileInputStream("verse.txt");
+        BufferedReader in = new BufferedReader(new InputStreamReader(fis)
+    )) {
+      String line;
+
+      while ((line = in.readLine()) != null) {
+        for (int i = 0; i<line.length(); i++) {
+          if(vowels.contains(String.valueOf(line.charAt(i)))) {
+            n++;
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    System.out.println(n);
+  }
+}
+
+How we make implementation to shorter?
+
+Way 1: Using Files class newBufferedReader() of nio package 
+
+public class Example2 {
+
+  private static String vowels = "aeiouAEIOU";
+
+  public static void main(String[] args) {
+    int n = 0;
+//try (BufferedReader in = Files.newBufferedReader(Paths.get("verse.txt")))
+    try (var in = Files.newBufferedReader(Paths.get("verse.txt"))) {
+      String line;
+
+      while ((line = in.readLine()) != null) {
+        for (int i = 0; i<line.length(); i++) {
+          if(vowels.contains(String.valueOf(line.charAt(i)))) {
+            n++;
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    System.out.println(n);
+  }
+}
+   
+
+Files have 4 methods with return type as Streams, so we can use Stream API methods on that data that comes from files 
+
+Way 2: Using Files.lines()
+
+public class Example3 {
+
+  private static String vowels = "aeiouAEIOU";
+
+  public static void main(String[] args) {
+    try {
+      var res =
+        Files.lines(Paths.get("verse.txt"))
+             .flatMap(line -> Arrays.stream(line.split("")))
+             .filter(c -> vowels.contains(c))
+             .count();
+      System.out.println(res);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+Here lines() takes the path of the file and return the streams which contains the lines read from the file. Now we call flatMap() which takes the value and returns the stream of different values, in this case we take line from Stream which we read and change to stream of characters, so after flatMap instead of having lines we  have as characters and check it directly 
+   .flatMap(line -> Arrays.stream(line.split(""))) - Here we basically transforms the stream of streams into another stream of streams and instead of containing lines it will contains each characters of each lines as a value.
+   .filter(c -> vowels.contains(c)) - Now we check which of them is vowel by simply filtering out and finally count it 
+
+
+Way 3: Using Files.list() used to return the contents of files and folder inside the folder as Paths
+
+public class Example4 {
+  public static void main(String[] args) {
+    try {
+      Files.list(Path.of("."))
+            .filter(p -> !p.toString().endsWith(".txt"))
+            .forEach(System.out::println);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+List all files and folders inside the current project that are not text files
+
+Using Files.walk() - used to specify the depth of tree structure of the folder you want to go 
+
+public class Example5 {
+  public static void main(String[] args) {
+    try {
+      Files.walk(Path.of("."), 3)
+            .forEach(System.out::println);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+Now it will display the folder structure with 3 folder depth
+
+Using Files.find(Path,depth,BiPredicate) - used to find files based on specific properties 
+
+public class Example6 {
+
+  public static void main(String[] args) {
+    try {
+      Files.find(Path.of("."), 3, (p,a) -> a.size() < 100)
+            .forEach(System.out::println);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+Here p - current path, a - attribute of path. So here we display from current path to folder depth 3 with size < 100
+
+1. By using java.io.File class we are not using any abstraction, since File is regular class we can instantiate and it has constructors. The reason why we use abstraction in nio package is when we deal with Path and operating file system,depending on OS we have different approaches to work with paths. So when we use abstraction by means of Path interface we get instance specific to OS we are running, we dont want to take care by ourself, ur JVM will do correct implementation since we use factory method of Path interface. So java.io.File since we dont have abstraction, ur JVM will not take care 
+
+2. File f=new File("test");
+    f.createNewFile();
+java.io.File dosent support Single Responsibility principal (ie) the class in ur appl will have only one purpose, but here File is used to represent the path and also its object executing the operation on file system itself, so it has 2 responsiblity  
+
+Path p=Paths.get("demo.txt");
+  But in new approach it separates the responsiblity, we have Path implementation where we dont instantiate but we use factory method, which take cares about the path and operation on paths.
+   Then we have separate class called Files which used to perform operation on file system
+
+
+JDBC
+   - JPA is specification, hibernate used for implementing the specification and hibernate uses JDBC behind the scenes
+   - JDBC provided all interface for communication but it is abstraction and we provide the implementation by providing different dependency for the different db, so there is common code in Java to connect will all db
+   - JDK dosent come with implementation for specific databases so we have to add separate dependency into classpath, so in JDK we find only the abstractions like interfaces. So this way ur java appl will become independent to which dbms we communicate, thats why each technology has its own jdbc driver which is external, you add it in ur classpath and then you just have to use abstractions from JDK and ur appl will automatically during runtime use the proper implementations from the dependency u add
+
+execute() - can be used for anytype of SQL queries
+          - returns boolean - true if it is select and false for others
+          - If my query is dynamic, somehow we dont know what query it will be from very beginning then we can use execute()
+
+executeUpdate() - used for DML queries, return an int
+executeQuery() - used for Select, return ResultSet
+
+So in case of execute(), whatever the method gets it will be executed, so if we have an appl that only needs to send the select but we use execute() and that select query comes from somewhere and it can be somehow altered from outside, you have a vulnerability that you didnt see, and somehow bad intention people can change ur select to a drop table which is called as SQL Injection. If u use execute() that alter can actually be executed but if you have that vulnerability which might happen and you didnt find in time, but if we use executeQuery because it should be only select query, then eventhough someone frm outside would be able to change the select to alter or drop table, it will still not be executed 
+
+
+Java Reflection API
+    - used to call private members of the class from outside
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Call {
+}
+
+public class ProductService {
+
+  private int x; // 1000
+
+  private ProductService() {
+
+  }
+
+  public void addProduct() {
+    System.out.println("Adding product in the DB.");
+  }
+
+  @Call
+  public void editingProduct() {
+    System.out.println("Editing product in the DB.");
+  }
+
+  public void printX() {
+    System.out.println(x); // 1000
+  }
+}
+
+So we have a ProductService class, if we want to access its methods we create an object and access. But how can spring or other framework can control classes using the principal called IOC, we allow the framework to control the classes, because framework cannot access the constructor of class using reflection API 
+   Reflection is used to control the compiled code
+
+
+public class Example1 {
+
+  public static void main(String[] args) {
+    String k = "service.ProductService";
+
+    // Class
+    try {
+      Class productServiceClass = Class.forName(k);
+
+      Constructor c = productServiceClass.getDeclaredConstructor();
+      c.setAccessible(true);
+
+      Object o = c.newInstance();
+
+      Method m = productServiceClass.getDeclaredMethod("addProduct");
+      m.invoke(o);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+public class Example2 {
+
+  public static void main(String[] args) {
+    String k = "service.ProductService";
+
+    try {
+      Class productServiceClass = Class.forName(k);
+
+      Constructor c = productServiceClass.getDeclaredConstructor();
+      c.setAccessible(true);
+
+      Object o = c.newInstance();
+
+      Method[] methods = productServiceClass.getDeclaredMethods();
+
+      for (Method m : methods) {
+        if (m.isAnnotationPresent(Call.class)) {
+          m.invoke(o);
+        }
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+
+public class Example3 {
+
+  public static void main(String[] args) {
+    String k = "service.ProductService";
+
+    try {
+      Class productServiceClass = Class.forName(k);
+
+      Constructor c = productServiceClass.getDeclaredConstructor();
+      c.setAccessible(true);
+
+      Object o = c.newInstance();
+
+      Field [] fields = productServiceClass.getDeclaredFields();
+      for (Field f : fields) {
+        f.setAccessible(true);
+        f.set(o, 1000);
+      }
+
+      Method m = productServiceClass.getMethod("printX");
+      m.invoke(o);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+ 
+
+Multithreading
+   - Thread is basically a set of instructions that execute in defined order, in parallel and independent of other set of instructions of same program 
+    Usually if we have one thread then we call us single thread program, in case of Java the first thread that starts with main method is called as main thread 
+   - Whenever we create a thread, there will be some time from starting of thread till the thread is started, so only it will print main thread then it goes to other child threads 
+
+   - Implements Runnable in this case my object dosent act like thread, so we use Thread class and transforms this task into thread and specify that task will execute independently in same program 
+
+   - join is the direct way you can specify that the thread must wait after another thread finishes. So the first way of synchronization is not by using synchronized keyword but using join()
+    Imagine we need to fetch data from 2 different databases and use that data for some processing. So consider we query DB1 (ie) first database and DB2 (ie) second database and then do processing, but when we query the data we actually dont care whether it is 1st db or 2nd db, the order from which we fetch the data is not important because in the end when we go to processing then we simply we need to have all the data, so it dosent really matter in which order u take them.
+   Consider db1 takes 3 secs, so in order to take the data from db1, the functionality u have it takes about 3secs and db2 takes 2 secs and once u collect the data we can start processing.
+   In this scenario is how we can implement that so the first approach is put them on the same thread then no matter in which order you will fetch the data, u will basically at some point spend 3+2=5 sec and then we can start processing
+   Now we want to change something so that we can spend less time with entire program like instead of querying them one by one, you would basically query them all together then instead of having the times added we will actually have max time of max(3,2) which is 3sec. 
+  So in my example if we put those 2 together on different thread then we might have a chance to spare couple of seconds and also we want to start the processing only after querying the database because if we do actually start the processing and if we do put this on different threads and then processing remains on 3rd thread, then that means all 3 are completely in parallel now so when we actually start db1 and db2 querying on those different threads, then the processing will start at the same time and we cant start the processing because we dont have data yet so we have make sure that processing starts only both db1 thread and db2 thread have ended and returned data. This can be done using join() of Thread class 
+
+
+public class DB1Runnable implements Runnable {
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(3000);
+            System.out.println("DB 1 querying ended...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+public class DB2Runnable implements Runnable {
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(2000);
+            System.out.println("DB 2 querying ended...");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class Example2 {
+
+    public static void main(String[] args) {
+        // 1
+        // query DB1  -> 3 seconds
+        // query DB2  -> 2 seconds
+        // max(3 , 2) = 3  <  5
+
+        // 2 --> join()
+        // processing
+
+        var db1 = new DB1Runnable();
+        var db2 = new DB2Runnable();
+
+        var t1 = new Thread(db1);
+        var t2 = new Thread(db2);
+
+        t1.start();
+        t2.start();
+
+        try {
+            t1.join();
+            t2.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("PROCESSING..."); // main
+    }
+}
+
+Synchronized Block
+    - We have resource that is used by multiple threads of 2 kinds. One kind is Producer which is used to produce something in shared resources and other kind of thread is Consumer which is used to consume something that Producer produces in shared resource. Consider shared resource as bucket in which Producer produces something and some consumer taking something from there  
 
