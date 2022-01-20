@@ -1,7 +1,18 @@
 Spring Batch is used to execute series of job at a particular point of time 
 
 Initially we have do everything manually now if we want automate that process at particular time. For example daily when time reach 6pm we want to execute some sort of job automatically we dont want to depend manually
-   We have bank appl, whenever they want to take backup means they send a message stating that we are planning to take backup so if u r doing any transaction at that time it will not reflect in ur database. Once every month or every year we want to execute series of job to take backup of the transaction   
+   We have bank appl, whenever they want to take backup means they send a message stating that we are planning to take backup so if u r doing any transaction at that time it will not reflect in ur database. Once every month or every year we want to execute series of job to take backup of the transaction 
+
+Spring Batch Architecture
+1.	Consider scheduler that runs inside our JVM which is going to trigger our Spring batch processing, in general we use spring scheduler or quartz scheduler. The scheduler launch JobLauncher which is class in Spring batch framework, it is a starting point for any particular job to be started inside spring batch
+2.	Job Launcher immediately triggers Job Repository which holds all statistical info of how many batches where run and what is the status of each batch, how many messages are processed or how many are skipped etc
+
+
+3.	Once Job Launcher triggers a Job repository, the Job Launcher has also have Job registered with this Job Launcher. This particular Job has a step, a Step basically consist of 3 different component inside Spring framework called ItemReader, ItemProcessor, ItemWriter, all these are useful when you want to read something from particular source, process that particular message and then write back to some other source. Most of the case these sources are either database or file system or queuing system 
+4.	For example, reading a file, we will read the file using ItemReader, we process the data inside the file basically each data can be converted into pojo or it can transfer to some other object using ItemProcessor and finally using ItemWriter we can write back to database or publish that to a queue.
+5.	You can configure multiple steps inside the job but ItemReader, processor and writer can be one instance per step. All steps are enclosed within Step Exceution, whereas job execution happens at job level so if there are multiple step inside the job that is consider as JobExecution and each step has its own step execution
+6.	Once all steps are completed, the step status is updated back into Job repository and we can also get some statistics on how many messages have read, how many processed and how many failed or skipped etc
+  
 
 Job Scheduler - in a day when it 6pm it is launch a job. So scheduler will take responsibility when it reaches wht time we have to execute the job.
 
@@ -19,12 +30,30 @@ Consider we take 2 step
   1. delete a file which use tasklet
   2. excel to database which use chunk 
 
-In this architecture, how manu job and how many steps.
+
+
+In this architecture, how many job and how many steps.
 1 job and 2 step and steps are configured based on chunks, most properly in chuck only we will go with reader, processor and writer
 
 Entire step process is maintained by Step Execution and entire job process is maintained by Job Execution
 
 https://github.com/TechPrimers/spring-batch-example-1
+We will read csv files and write those data to database, so it is extract data from csv file transform to different object and store into database
+
+1. Create project with batch,web,spring datajpa, devtools database dependency 
+
+2. Create users.csv file
+id,name,dept,salary
+1,Ram,001,20000
+2,Sam,002,25000
+3,Peter,003,30000
+
+3. Create entity class
+4. Create repository interface 
+
+
+spring.batch.job.enabled=false  - which disable default batch launcher, if we dont do it spring boot by default use SimpleJobLanucher and automatically start based on confgiuration which we add 
+
 1. Enable @EnableBatchProcessing in main class
 
 2. Create controller with rest endpoint which returns BatchStatus which checks the status of job is completed or not. If all job are completed properly then it returns completed otherwise it returns some pending
@@ -39,7 +68,10 @@ In the controller we specify in the appl we execute sequence of jobs for that we
    - All logic we write inside Step using StepBuilderFactory
    - We can give any name,because whatever we are doing like what are steps creating, what are jobs creating, whether all job completed or not,all steps completed or not are maintained in database which are done by JobRepository 
    so only we give some name so that in database we can see the job and its status 
+
+
    - Now we decide to create step based on chunk or tasklet. Here we want to take data from csv file and store in database so for this purpose we define as chunk. 
+
   - What task we are going to give, take the data from excel and store into db, but this task is divided as 10 chunk and do it
     For tasklet we dont need to specify it because tasklet used for simple job so it can done at once. But here we divide lengthy process into 10 chunks and do it.
     If it is divide into chunk it is further divide into reader (first go to csv file and read it), processor(process the data) and writer (write data) and finally build the step
@@ -50,7 +82,10 @@ Step step = stepBuilderFactory.get("ETL-file-load")
                 .writer(itemWriter)
                 .build();
    - Now step is ready, now we want to assign this step to specific job using JobBuilderFactory and provide some name 
+
+
    - Incrementor - so whenever any job runs it creates a job instance to create it we use RunIdIncrementor, so that we can come to know how many times job is run (ie) this job can run multiple instance so first time it give id as 1 and for second time its id as 2
+
    - using start we will job with this step, in case we have multiple step
 return jobBuilderFactory.get("ETL-Load")
                 .incrementer(new RunIdIncrementer())
@@ -60,8 +95,10 @@ return jobBuilderFactory.get("ETL-Load")
 3. Now we give defination from ItemReader, writer and processor
    - read data from flatfile, so we create instance
    - from which source read the data (ie)from csv file
+   - give name for ItemReader as "CSV-Reader"
    -  flatFileItemReader.setLinesToSkip(1); read the csv file but skip the first line as first line is header
    - flatFileItemReader.setLineMapper(lineMapper());
+
 
 4. Now we create lineMapper() which pojo class should refer so based on that we store info in database 
   we have compare csv with pojo class so that mapping will happen and store all data into database which will do by lineMapper()
@@ -89,6 +126,8 @@ Initially ur csv file contains id,name,age,deptcode now we want to change to dep
 7. Now joblauncher, job, reader,writer,processor is ready. The entire job is maintained by JobExecution which will get all updation of job
   Now in controller method, we created all job,step, reader,writer,processor now when we run the appl u should read the data, process the data and write the data to db which happens automatically
   Now we ask launcher to run the job(so job defined in controller and job() we define in SpringBatchConfig which contain abt step and step contain info abt reader, processor and writer 
+
+
   JobLancher run the job and tell to JobExecution whether it is successfully executed or not and get the status from JobExecution
 
 So we initially configured JobLauncher, it will run Job and Job will run Step and step is agin divided into reader, writer,processor. Once job is executed successfully it gives status to JobExecution and finally it gives status to customer
@@ -100,7 +139,347 @@ batch_job_execution
 batch_step_execution
 
 Run http://localhost:8000/load it gives status as COMPLETED
-
 Each time we execute job id will be created 
-   
+Connect with http://localhost:8000/h2-console 
 https://grokonez.com/spring-framework/spring-batch/use-spring-batch-tasklet
+
+
+
+Spring Cloud Task
+     
+https://www.youtube.com/watch?v=pagGJwCqxGI
+
+    - It makes it easy to create short-lived microservices. If we using Spring Cloud Task then we can track execution history of any task which is running in prod env
+
+1. Create SpringCloudTask project with Task dependency
+
+2. Enable the task using @EnableTask in main class
+
+3. Here we want to run some code before appl starts so we are using CommandLineRunner 
+
+       @Override
+	public void run(String... args) throws Exception {
+		System.out.println("Welcome to " + args[0]);
+	}
+
+For that task we want to track the execution and we want to provide the commandline arguments
+
+Right click - Run as - Run Configurations - Arguments- Helloworld 
+
+4. To enable the log, in application.properties we need to enable log levels
+         logging.level.org.springframework.cloud.task=DEBUG
+
+When we run the appl, it will create TaskExecution with executionId with task name as 'Application', starttime, endtime, arguments, then it will print the statement and then it will update the task with endtime, exitcode   
+   If you want to customize ur task name then in application.properties we give 
+         spring.application.name=cloud-task
+Now when we run the appl, task name will be updated as cloud-task. So always first it creates TaskExecution, after that it will call our task and after that it updates the execution task
+    Using @EnableTask which tells Spring Cloud Task to bootstrap its functionality and by default it imports additional configuration class called SimpleTaskAutoConfiguration. This class internally creates TaskRepository which is an interface and it is implementation of SimpleTaskRepository class. This class provide with createTaskExecution methods which will invoke once our appl starts and takes TaskExecution as argument and update the value to database and prints the log statement which all taskexecution input. 
+   If we goto TaskExecution, we can see all properties that we seen in the console. Next method is completeTaskExecution() which takes couple of arguments and do some logic and update to database and print the log statement as updating
+
+5. If we want to customize ur log statement or we want to trace something like before method call or after method call then we use TaskExecutionListener interface and override 3 methods 
+   onTaskStartup() - once ur task is started
+   onTaskEnd() - once ur task is end
+   onTaskFailed() - once ur task is failed
+
+public void onTaskStartup(TaskExecution taskExecution) {
+		System.out.println("TaskName : " + taskExecution.getTaskName() + " Execution Id : "
+				+ taskExecution.getExecutionId() + " started...");
+
+	}
+
+
+	public void onTaskEnd(TaskExecution taskExecution) {
+		System.out.println("TaskName : " + taskExecution.getTaskName() + " Execution Id : "
+				+ taskExecution.getExecutionId() + " completed...");
+
+	}
+
+	
+	public void onTaskFailed(TaskExecution taskExecution, Throwable throwable) {
+		System.out.println("TaskName : " + taskExecution.getTaskName() + " Execution Id : "
+				+ taskExecution.getExecutionId() + " failed...");
+
+	}
+
+Run the appl and see the output 
+
+6. If we want to use annotation and not TaskExecutionListener, then remove the interface and use @BeforeTask,@AfterTask and @FailedTask
+
+@BeforeTask
+	public void start(TaskExecution taskExecution) {
+		System.out.println("TaskName : " + taskExecution.getTaskName() + " Execution Id : "
+				+ taskExecution.getExecutionId() + " started...");
+
+	}
+
+	@AfterTask
+	public void end(TaskExecution taskExecution) {
+		System.out.println("TaskName : " + taskExecution.getTaskName() + " Execution Id : "
+				+ taskExecution.getExecutionId() + " completed...");
+
+	}
+
+	@FailedTask
+	public void fail(TaskExecution taskExecution, Throwable throwable) {
+		System.out.println("TaskName : " + taskExecution.getTaskName() + " Execution Id : "
+				+ taskExecution.getExecutionId() + " failed...");
+
+	}
+
+Run the appl and we can see same output. This will helps in prod env where the developer can easily identify about the task execution history like how much time it takes, about the arguments passed or if there is any error message 
+
+7. We see how to save task execution history in database 
+
+mysql>create database springtask
+mysql>use springtask
+
+8. Add db info in application.properties
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url = jdbc:mysql://localhost:3306/Springtask
+spring.datasource.username = root
+spring.datasource.password = root
+spring.jpa.show-sql = true
+spring.jpa.hibernate.ddl-auto = update
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL5Dialect
+
+9. Add spring data jpa, mysql connector dependency in pom.xml
+
+10. Run the appl, we can see tables is created inside database using TaskRepository 
+
+
+Spring Cloud Data flow
+
+https://www.youtube.com/watch?v=THxJJzyVVmg
+https://github.com/Java-Techie-jt/spring-cloud-data-flow-example
+
+     - It is a toolkit to build Microservice based Streaming and Batch data processing pipelines
+     - The data pipelines consist of Spring Boot apps which can build using Spring Cloud Stream or Spring Cloud Task microservice frameworks. So the pipelines which is required to connect with Spring cloud dataflow is also a Spring boot appl which can build either using spring cloud stream or cloud task 
+
+Why?
+  - If ur appl is long lived applications then we go for Spring cloud Stream based microservices. If ur appl is short lived appl then we choose Spring cloud task based microservices
+
+Example:
+   In this we use Spring cloud Stream based appl to demonstrate Spring cloud dataflow. We have 3 cloud stream based microservices Source, Processor and Sink. In general Source will publish the event, Processor will process the event and Sink will consume that event. All this are connected using cloud stream and in this case we use Kafka as messaging channel so that source will send data using cloud stream or Kafka topic, then processor will process the data and sink will consume the data over cloud stream from kafka topic. We will register all microservice in Spring Data flow and on the fly we create stream to verify how this microservice based streaming works in spring cloud data flow
+
+    We create 3 microservice called ProductService, CourierService and DiscountService, ProductService will acts as Source, DiscountService acts as processor and CourierService will acts as Sink. Basically we need to register all these services in Spring cloud dataflow and on the fly we create one data stream so that all these 3 microservices can talk to each other through that stream. Once user adds product to ProductService and then that request will goes to DiscountService over cloud stream and it will process some discount logic, then again the request goes to CourierService which will consume that request from DiscountService through the cloud stream
+
+1. Create ProductService project with lombok, cloud stream, spring for Apache Kafka dependency
+
+2. Create DiscountService project with lombok, cloud stream, spring for Apache Kafka dependency
+
+3. Create CourierService project with lombok, cloud stream, spring for Apache Kafka dependency
+
+4. In ProductService create Product class 
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product {
+    private int id;
+    private String name;
+    private double price;
+}
+    
+5. Since ProductService is source class, we need to @EnableBinding(Source.class) in main class 
+
+6. We need to write logic to publish product object and we need to run this method for every 10sec and return list of products 
+
+@Bean
+	@InboundChannelAdapter(value = Source.OUTPUT,poller = @Poller(fixedDelay = "10000",maxMessagesPerPoll = "1"))
+	public MessageSource<List<Product>> addProducts(){
+		List<Product> products= Stream.of(new Product(101,"Mobile",8000)
+				,new Product(102,"book",6000))
+				.collect(Collectors.toList());
+		logger.info("products : {}",products);
+		return ()-> MessageBuilder.withPayload(products).build();
+	}
+
+7. In DiscountService main class define @EnableBinding(Processor.class)
+
+8. Here we need to add logic to provide the discount to the list of products which our source will send over the stream, by getting products we add discount logic 
+   First we create Product object because product object will transfer over the stream to processor
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product {
+    private int id;
+    private String name;
+    private double price;
+}
+
+9. Now create addDiscountToProduct() in main class, which returns List<Product> object to our Sink which is our CourierService, it accepts List<Product> object which will get from ProductService
+   We just iterate it, so in each product we check the price and the discount, if price is greater than 8000 then we add 10% discount. Similarly if price is greater than 5000 then we add 5% discount
+
+public List<Product> addDiscountToProduct(List<Product> products){
+		List<Product> productList=new ArrayList<>();
+		for(Product product:products){
+			if(product.getPrice()>8000){
+				productList.add(calculatePrice(product,10));
+			}
+			else if(product.getPrice()>5000){
+				productList.add(calculatePrice(product,5));
+			}
+		}
+		return  productList;
+	}
+
+10. Now we create calculatePrice() which takes Product as argument and add the percentage, separately to caluclate the discount 
+
+Logger logger=LoggerFactory.getLogger(DiscountServiceApplication.class);
+
+private Product calculatePrice(Product product, int percentage) { double actualPrice = product.getPrice();
+		double discount = actualPrice * percentage / 100;
+		product.setPrice(actualPrice - discount);
+		logger.info("Product actual price is {} , after discount total price is {} ",
+				actualPrice, product.getPrice());
+		return product;
+	}
+
+11. Now we annotate addDiscountToProduct() with @Transformer where we specify inputChannel which is Processor.INPUT and outputChannel as Processor.OUTPUT 
+
+@Transformer(inputChannel = Processor.INPUT,outputChannel = Processor.OUTPUT)
+
+
+12. After discount whatever list of products are there it will be consumed by CourierService. Here also create Product class 
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product {
+    private int id;
+    private String name;
+    private double price;
+}
+
+13. Define @EnableBinding(Sink.class) in main class 
+
+14. Define Logger 
+
+Logger logger = LoggerFactory.getLogger(CourierServiceApplication.class);
+
+15. Create orderDispatched() method which fetch List<Product> from Processor and just iterate it and print the product. 
+   We need to annotate @StreamListener(Sink.INPUT)
+
+@StreamListener(Sink.INPUT)
+    public void orderDispatched(List<Product> products) {
+        products.forEach(product -> {
+            logger.info("Order dispatched to your mailing address : " + product);
+        });
+    }
+
+16. Now we created all 3 microservices and now we need to create jar file. 
+   In all pom.xml create finalName for jar
+
+<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+		<finalName>courier-service</finalName>
+	</build>
+
+<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+		<finalName>discount-service</finalName>
+	</build>
+
+<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+		<finalName>product-service</finalName>
+	</build>
+
+17. Now run "mvn clean install" for all 3 services, so it creates jar files in target folder 
+   Now we build all 3 microservices and these 3 services can communicate with each other using cloud stream and here we use Kafka as messaging channel
+
+18. Start zookeeper
+C:\Softwares\kafka_2.12-2.0.0\config>zookeeper-server-start.bat zookeeper.properties
+
+19. Start Kafka server
+C:\Softwares\kafka_2.12-2.0.0\config>kafka-server-start.bat server.properties
+
+20. Download Spring Cloud Data Flow Server jar  from 
+https://repo.spring.io/ui/native/milestone/org/springframework/cloud/spring-cloud-dataflow-server-local
+
+21. Strat Spring Cloud Data Flow Server
+download folder>java -jar spring-cloud-dataflow-server-local-1.7.4.RELEASE.jar
+    - Spring cloud data server is up in 9393
+ Now run http://localhost:9393/dashboard in browser 
+   - So we can see no apps register in cloud data server 
+
+22. First we register all 3 services,then we can create a stream so that all 3 services can communicate with each other. To register all services we use spring cloud data shell 
+   Download Spring Cloud Data Flow Shell jar from https://repo.spring.io/ui/native/milestone/org/springframework/cloud/spring-cloud-dataflow-shell/1.3.0.M1
+
+23. Start cloud dataflow shell using
+download folder>java -jar spring-cloud-dataflow-shell-1.3.0.M1.jar
+
+24. Now we need to register all services in dataflow shell
+dataflow>app register --name product-service --type source --uri maven://com.javatechie:product-service:jar:0.0.1-SNAPSHOT
+
+dataflow>app register --name discount-service --type processor --uri maven://com.javatechie:discount-service:jar:0.0.1-SNAPSHOT
+
+dataflow>app register --name courier-service --type sink --uri maven://com.javatechie:courier-service:jar:0.0.1-SNAPSHOT
+
+25. Now goto spring cloud dataflow browser and refresh, we can see all 3 services would be registered 
+
+26. Now goto Streams, we cant see any streams, inorder to register the streams 
+    Click Create Stream - drag and drop all services and link it - Click Create Stream - Give some name - check Display Stream checkbox - Click Create and display the Stream
+    Now goto Spring cloud data server console, we can see log in the directory
+
+27. Goto the directory and we can see the logs for source,processor and sink
+    Now goto Source folder, inside we can see Productservice and open the log and we can see the product we have sent
+    Now goto processor folder, inside we can see Discountservice and open the log and we can see the discount we added
+    Now goto Sink folder, inside we can see Courierservice and open the log and we can see the response "Order dispatched to mailing address"
+   This is how we can register all services inside Spring data flow as we create the stream and deploy it, then all those services can communicate with that cloud stream 
+
+
+Introduction to ETL process
+    - ETL stands for "extract,transform and load". "extract" means nothing but export, so we want to take the data and "transform" means converting the data by writing some business logic from one ship to another. Consider we receive xml data which contains employee info and now we need to apply some business logic like employee getting salary more than 1L and "load" means we are writing the data into different target system like nosql or rdbms database or push data into streaming services like Apache Kafka or push data into queue services 
+
+Introduction to Spring Batch
+    - It is developed by Spring community, it is an open source, very lightweight and this framework has been designed to solve enterprise problem and reduce lot of times of developer
+    - Spring batch helps large volume of records including logging data, transaction data, flat file data, it will process that data and finally write in proper format in target system. In spring batch even we can start the job, stop the job, skip the job and if something happens even we can retry the job 
+
+Features
+   - Transaction management
+   - Chunk based processing 
+     1. Consider we transfer money through NEFT it will take minimum 30 min. Now when we submit the transaction and at same time another 100 people wants to do NEFT transaction, so it will stored in batches, after certain amount of time based on their configuration at server that job will triggered and then job will pick all transaction and it will start the processing. 
+     2. Used for settlement purpose (ie) each and every month u will be getting credit card statement. Consider first week of every month so same date from same bank another 1000 customers credit card report will be generated and send to mail id. So it will run batch process on that time and capture all data, process and generate complete pdf file and automatically trigger to ur mail id 
+   - Job start/stop/retry
+   - Job processing statistics
+        Consider we are running any job with help of Spring batch, one of batch may be succeed or failure due to certain reason, so u can find out using their statistics
+
+Spring Batch Components
+1. Job Repository
+      This represents the persistence of batch metadata entities in the database. It acts as a repository that contains batch job's information, for exampke when the last batch job was run etc
+
+2. JobLauncher 
+       This is an interface used to launch a job or run jobs when the job's scheduled time arrives. It takes the job name and some other parameters while launching or running the job
+
+3. Job
+     This is the main module, which consist of the business logic to be run
+
+4. Step
+    Steps are nothing but an execution flow of the job. A complex job can be divided into several steps or chunks, which can be run one after another
+
+5. ItemReader
+      This interface is used to perform bulk reading of data, eg: reading several lines of data from an Excel file when job starts
+
+6. ItemProcessor
+      When the data is read using ItemReader, itemProcessor can be used to perform the processing of data, depending on the business logic
+
+7. ItemWriter
+      This interface is used to write bulk data, either to a database or any other file disks
