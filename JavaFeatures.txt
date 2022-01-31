@@ -5323,4 +5323,626 @@ public class Example2 {
 
 Synchronized Block
     - We have resource that is used by multiple threads of 2 kinds. One kind is Producer which is used to produce something in shared resources and other kind of thread is Consumer which is used to consume something that Producer produces in shared resource. Consider shared resource as bucket in which Producer produces something and some consumer taking something from there  
+   We create Producer which generate random numbers in the bucket and consumer will consume the numbers from bucket.
+
+1. Create Main class, with ArrayList object and here we used ArrayList because it is not synchronized and it will act as bucket where we put the values and inside main() we start Producer and Consumer thread 
+
+public class Main {
+
+    public static List<Integer> bucket = new ArrayList<>();
+
+    public static void main(String[] args) {
+        Producer p1 = new Producer("p1");
+        Producer p2 = new Producer("p2");
+        Consumer c1 = new Consumer("c1");
+        Consumer c2 = new Consumer("c2");
+
+        p1.start();
+        p2.start();
+        c1.start();
+        c2.start();
+    }
+}
+
+2. Create Producer thread and create name for the thread inside the Constructor. Next we override run() to design the functionality of this thread, make the thread runnable continously using while(true) and we check if bucket size is more than 100 and we add random values in bucket from 0 to 999
+   So we designed the Producer which continously run, if bucket size is more than 100 then we generate new random number and add into bucket and also print value in console 
+
+public class Producer extends Thread {
+
+    public Producer(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        Random r = new Random();
+        
+        while (true) {
+                // synchronized (Main.bucket) {
+                if (Main.bucket.size() < 100) {  // T1
+                    int n = r.nextInt(1000); // [0,999]
+                    Main.bucket.add(n);
+                    System.out.println(Thread.currentThread().getName()
+                            + " added value " + n + " to the bucket");
+                }
+            //}
+        }
+    }
+}
+
+3. Create Consumer thread which will take value from bucket, create name of consumer thread inside constructor
+    Now we override run() which run continuously using while(true) and we check if bucket is not empty, then we try to get the value from index 0 and remove the value from index 0 and print the value in the console 
+
+public class Consumer extends Thread {
+
+    public Consumer(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+               // synchronized (Main.bucket) {
+                if (!Main.bucket.isEmpty()) {
+                    int n = Main.bucket.get(0);
+                    Main.bucket.remove(0);
+                    System.out.println(Thread.currentThread().getName()
+                            + " took out the value " + n + " from the bucket");
+                }
+            //}
+When we run u can see consumer thread is completely stops and producer threads only running. It is not working fine because we didnt synchronize producer and consumer. So we apply synchronized keyword on block of object.
+    Synchronized block is one in which if one thread enters and acquires the lock, no other threads will be allowed to enter until one inside ends and releases the lock.
+
+         
+        }
+    }
+}
+
+
+wait() and notify()
+    Previously we created 2 instance of Producer(P1,P2) and Consumer(C1,C2) with synchronized block. Producer have synchronized the decisional structure where we change the bucket by adding random values and Consumer as well has synchronized decisional structure where we work with bucket by removing the values.
+     We added synchronized block since we worked with shared resources, as we discussed when we have multiple threads working with same resource then we have to synchronize it otherwise we will face problem when 2 different threads actually try to change the same resource and thats called Race condition.
+      When C1 thread access to synchronized block and we have a monitor which is an object used to manage synchronized block (ie) bucket. So C1 manages to obtain the lock from bucket (ie) C1 is actually working, so unless C1 finishes the synchronized block no other threads can be working, the reason one at time is same monitor (ie) bucket manages all threads
+   In case of Consumer if condition is true we will consume one of value from bucket (ie) bucket is not empty so we consume one of value. But if the condition is false (ie) the bucket is empty and we are in while(true) and in same thread will be executing the same thread again and again, and we dont know how long JVM will stay with these C1 thread, but we are in synchronized block and no other thread at the same time, basically there is no Producer to add the value so condition will never change 
+   So in case of false condition we simply left at JVM decision how many times would consumer executes which is not good performance because we already know that if condition is false then from our perspective that consumer should automatically get out and allow Producer enter the stage to add the value, for the other consumer to consume the value, then same will come for Producer also.
+   So if Producer finds out if already there are 100 elements and it cannot add 1 more element in list then instead remaining there continously testing same condition which will never get through, so instead of that we actually have to  wait to allow another thread going to the stage (ie) consumer to enter the stage so that it will make list size smaller than 100.
+   To do that we have an option, if condition is false and Producer cannot add anymore the values, it has to wait and it is the monitor Main.bucket who is managing the thread telling the thread to wait. wait() is a method which puts the current thread in blocked state 
+    Main.bucket.wait() which makes producer to waits now because it cant add any value, so here we made producer to wait for the consumer to consume the value before it test again the condition, otherwise without that wait there our Producer will continuously run the evaluation of condition which dosent make sense because we know this condition wont become true if one consumer will consume the value.
+    wait() and notify() has to be called only inside synchronized block. It is always monitor object Main.bucket should be calling wait() and notify(). wait(),notify(),notifyAll() are present in Object class because any object will be passed as an monitor.
+   Now we goto Consumer class and after removing the value we will notify the threads using notify() or notifyAll() method. notify() will notify the next waiting thread whereas notifyAll() will notify all the waiting thread. In our case we dont know next thread is consumer or producer, so we use notifyAll().  
+    The same thing can be done for Consumer, if no values then consumer waits using Main.bucket.wait() and when the consumer should continue when there is atleast one value in the bucket, that means one producer has added the value so notify the consumer thread when new value has been added 
+
+public class Producer extends Thread {
+
+    public Producer(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        try {
+            Random r = new Random();
+            // 100  wait() notify()
+
+            // scja / scjp -> oca8 / ocp8 -> ocp I 11 / ocp II 11
+            while (true) {
+                synchronized (Main.bucket) {
+                    if (Main.bucket.size() < 100) {  // T1
+                        int n = r.nextInt(1000); // [0,999]
+                        Main.bucket.add(n);
+                        Main.bucket.notifyAll();
+                        System.out.println(Thread.currentThread().getName()
+                                + " added value " + n + " to the bucket");
+                    } else {
+                        Main.bucket.wait(); // producer waits now
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class Consumer extends Thread {
+
+    public Consumer(String name) {
+        super(name);
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                // not sync
+                // Tx
+                synchronized (Main.bucket) {
+                    if (!Main.bucket.isEmpty()) {
+                        int n = Main.bucket.get(0);
+                        Main.bucket.remove(0);
+                        Main.bucket.notifyAll();
+                        System.out.println(Thread.currentThread().getName()
+                                + " took out the value " + n + " from the bucket");
+                    } else {
+                        Main.bucket.wait();
+                    }
+                }
+
+                // not sync
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+Usage of Synchronized keyword
+
+public class Example1 {
+    private Object monitor = new Object();
+
+    public void a() {
+        synchronized (monitor) {
+
+        }
+    }
+
+/* Even we can use instance of this class itself and use the current instance as monitor which will affect synchronization, we cant use outside the class. In Producer Consumer case we want synchronize producer with consumer so we have 2 different classes we couldnt simply use "this" in that case we wouldnt synchronize directly the different kinds of thread, so we decided to use unique montior "Main.bucket" */
+    public void b() {
+        // here
+        synchronized (this) {
+
+        }
+        // here
+    }
+
+/*synchronized in method which means the whole block of code of method is synchronized and the monitor is hidden, so method b() and c() is similar */
+    public synchronized /* this */ void c() {
+
+    }
+
+/*synchronized keyword on static method, so we dont have "this" instance, static means part of class */
+    public static synchronized void d() {
+
+    }
+
+/* When ClassLoader in java which is mechanism of JVM managing the classes, when it is loading the blueprint of the class it actually creates an instance which refers to blueprint itself. The main idea is that when we work with synchronization on static methods so synchronization basically done using that instance which represent the class itself*/
+    public static void e() {
+        synchronized (Example1.class) {
+
+        }
+    }
+}
+
+
+Deadlocks
+   - It is problem occured in multithreading architecture
+   - Racecondition is a situation when multiple threads try to access and change one resource, so the same resource is accessed and more threads try to change it. Synchronization is a way to avoid racecondition because by synchronization u simply specify that the threads should be working with shared resource one after another and not try to change it at sametime.
+    - Deadlock means we have 2 or more threads because the code is designed wrongly, u face a situation in which they wait one after the another so the code will stucked, process is blocked and thread cannot continue
+
+1. Create Example3.java with 2 methods m1() and m2(), assume that these 2 methods are executed from 2 different threads and we use 2 objects as ur monitor.
+   For some reason inside m1(), we implement a code to synchronize on "a" and inside we create other synchronized block on "b". The same thing in m2() but in reversed format.
+   We have multiple threads and they are calling this 2 methods, because they are threads they might call 2 methods simulanteously or in any order and we dont know precisely how it will be called 
+   Conside thread T1 enters method m1() and another thread T2 enters method m2(). Now T1 proceed with execution and comes between synchronized(a) and synchronized(b), now no other threads can enter synchronized block of "a", consider we have thread T3 and it has to wait, it cant enter because it is already executed by thread T1. So when we have active thread that obtain lock for the monitor then all other threads have to wait until other thread finishes its execution.
+   At same time thread T2 can proceeds and obtain the lock from synchronized(b) to synchronized(a). Why T2 is possible to enter the block because it has different monitor, previously T1 enters the synchronized block and obtains the monitor of "a", but monitor b is free and dosent have any lock, so now we have another thread T4 it wont enter the synchronized(b) because it is already taken by T2, until T2 finishes the execution no other thread can obtain lock on b
+   Now T1 obtain the lock on "a" and it cant enter synchronized(b) because T2 have already obtain the lock of b, but at same time T2 at somepoint it enters synchronized(a) and T2 cannot obtain because monitor "a" is already taken by T1. So T1 can proceed only if T2 ends its synchronized block, but T2 cannot obtain access to synchronized block and T2 is waiting for T1 to complete the synchronized block but T1 cannot complete because it cannot enter synchronized(b) because it is taken by T2, so basically T1 is waiting for T2 and T2 is waiting for T1. So they are locked and they are waiting one after another and that is deadlock.
+   We have deadlock when atleast 2 threads that running one after another, in such situation neither of them cant proceed.
+
+public class Example3 {
+
+    private Object a = new Object();
+    private Object b = new Object();
+
+    public void m1() {
+        // T3
+        synchronized (a) {
+            // T1
+            synchronized (b) {  // DEADLOCK
+
+            }
+        }
+    }
+
+    public void m2() {
+        // T4
+        synchronized (b) {
+            // T2
+            synchronized (a) {  // DEADLOCK
+
+            }
+        }
+    }
+}
+
+So if we have monitor a and b in same order in both m1() and m2() then deadlock can be avoided.
+
+public class Example4 {
+
+    private Object a = new Object();
+    private Object b = new Object();
+
+    public void m1() {
+        // T3
+        synchronized (a) {
+            // T1
+            synchronized (b) {
+
+            }
+        }
+    }
+
+    public void m2() {
+        // T4
+        synchronized (a) {
+            // T2
+            synchronized (b) {
+
+            }
+        }
+    }
+}
+
+
+Executor Services
+    - Create an instance of ExecutorService interface, but in inheritance tree it will start with Executor interface, ExecutorService extends Executor interface 
+    To create ExecutorService using Executors class which have static methods used to create specific kind of  ExecutorService 
+
+ExecutorService service = 
+                  Executors.newFixedThreadPool(n);
+
+ThreadPool is something like collection of threads and take tasks and execute those tasks, the purpose is put the tasks inside the pool and somebody will take and execute that task. Consider we have service desk in company and say we have 10 people behind the interface of service desk and somebody can simply create the task in web interface and who create the task dont know who will take the task and process it, it will be one of 10 people behind working on service task but completely decoupled from the user, in this way only thread pool works. Its decoupling one who creates the task, from whom have executed the tasks (ie) threads
+    Previously we created the thread ourself using Thread class or Runnable interface, but here we wont create any thread so ExecutorService is consider as high level multithreaded framework of JDK since we dont want to manage the thread ourself so we just create the task and throw the task and they will taken and execute by threadpool
+    Consider we have olympic pool and that contains different swin lane and each swin lane will have one swimmer. Now we are throwing balls inside swimming pools and balls are basically tasks, the swimmers need to take the ball and move it from one side to other side of lane. Here swimmers are basically threads and we can have as many threads.
+    Balls are the tasks and we are throwing in the pool and we dont know which swimmer will take the ball, but we know at somepoint when swimmer will come available they can take that ball and move it to other side. So throwing ball into swimming pool is task and we create task by using Runnable or Callable interface where Runnable dosent return anything but Callable returns some value. 
+    Basically swimming pool is ExecutorService, balls are tasks, swimmers are threads and swim lanes are CPU that available in ur system so we cant have multiple swimmers on same lane because we cant have multiple threads executing on same CPU so we can have one swimmers in a lane since lane represented as CPU and it can execute only 1 thread at a time and we wont create more threads than the number of lanes or CPU because other threads cant be executed 
+
+   - execute() from Executor class receives a Runnable where we can create an task 
+   - We need to always close the ExecutorService using shutdown(), if not the appl will still run in background. Unfortunately ExecutorService dosent implement AutoCloseable interface so we couldnt use it in try with resources so we have to shutdown the service inside finally block
+
+public class Example1 {
+
+    public static void main(String[] args) {
+        // Executor <- ExecutorService
+
+        ExecutorService service = null;
+        try {
+            int n = Runtime.getRuntime().availableProcessors();
+            service = // pool
+                    Executors.newFixedThreadPool(n); // threads
+
+            Runnable r = () -> System.out.println(":) " +
+                    Thread.currentThread().getName()); // ball
+
+            service.execute(r); // throwing the ball into the pool
+
+            System.out.println(":( " + Thread.currentThread().getName());
+        } finally {
+            if (service != null) {
+                service.shutdown();
+//                service.shutdownNow();
+            }
+        }
+
+    }
+}
+
+When we use shutdown() and we add some tasks inside pool and when we call shutdown() it will place the pool inside shutdown state and wait for the task to finish inside the pool, so we wont close the pool until all tasks are already existing in pool finishes. Using shutdownNow() it actually stops the pool eventhough u still have tasks inside it without basically executing those tasks. shutdown() returns void and shutdownNow() returns List<Runnable> which are tasks havent been executed 
+
+Example 2:
+
+public class Example2 {
+
+    public static void main(String[] args) {
+        ExecutorService service = null;
+        try {
+            int n = Runtime.getRuntime().availableProcessors();
+            service = // pool
+                    Executors.newFixedThreadPool(n); // threads
+
+            Runnable r = () -> System.out.println(":) " +
+                    Thread.currentThread().getName()); // ball
+
+//Here generic type is ? because we dont return anything begin Runnable  
+            Future<?> f = service.submit(r); // throwing the ball into the pool
+
+            System.out.println(":( " + Thread.currentThread().getName());
+        } finally {
+            if (service != null) {
+                service.shutdown();
+            }
+        }
+    }
+}
+
+To create task, we can call submit() which takes Callable or Runnable as argument and returns Future which is defined by ExecutorService interface.
+    We can use submit() to find out if ur task is executed properly (ie) we can refer to task from outside by using Future interface 
+
+
+Future, Runnable and Callable interface
+
+Example 1:
+public class Example1 {
+
+    public static void main(String[] args) {
+        ExecutorService service =
+                Executors.newFixedThreadPool(4);
+
+        Runnable r = () -> System.out.println(":)"); // ordering a pizza
+
+        Future<?> f = service.submit(r); // order a pizza and get back a receipt
+
+        // do a lot of stuff (buy a lot of things)
+
+        try {
+            f.get(); // get your pizza
+            // if not ready -> then you have to wait
+            // ready -> get() returns the value
+        } catch (InterruptedException e) {
+
+        } catch (ExecutionException e) {
+            // pizza has been burnt
+            // take a decision what you do
+        }
+        service.shutdown();
+    }
+}
+
+Create ExecutorService using newFixedThreadPool(), create a task using Runnable interface and execute the task using execute() but it will not return anything. So whenever you do use execute() we can just throw the task into the pool and execute at some point but u never know what happened with ur task.
+   More often than execute() we use submit() as 3 overloaded methods submit(Runnable), submit(Runnable,result), submit(Callable).
+   When you use submit() you get back Future and Future is an object that u will get back and that enables you interact with the task that you have submitted. Even if it is Runnable and being Runnable it dosent get you back anything, you want atleast to see if it has completed or not, otherwise we use execute() which returns nothing and have no chance of knowing if ur task has been executed or if it is succeeded or thrown an specific exception.
+
+Example of Future interface:
+    Imagine going to a big shopping center and want to buy different stuffs for ur family, in between u felt very hungry so went to pizza shop nearby. You go and buy pizza and the pizza is not something u get immediately, u have to wait for the pizza to cooked and it might take sometime to get cooked say 40min, instead of getting pizza u actually get receipt or token that we will use later to get pizza when its ready, so small receipt that u get back after paying and making the order thats basically the Future, so Future is something u get back immediately after doing an action and u will use later to see to get some status about ur task placed into the pool. Now u will able to do things at same time like while ur pizza is cooking, u can just take Future (ie) receipt and u go to shopping centre and buy lot of things and then u come back present the ticket and get back the result like wise Future will be working 
+
+Example 2:
+    In certain situations we want to get something back from task in this case we use Callable interface and returns the value 
+
+public class Exemple2 {
+
+    public static void main(String[] args) {
+        ExecutorService service
+                = Executors.newFixedThreadPool(4);
+
+        Callable<String> c = () -> "Hello!";
+
+        Future<String> f = service.submit(c);
+
+        // do some stuff
+
+        try {
+            String value = f.get();
+            System.out.println(value);
+        } catch (InterruptedException | ExecutionException e) {
+            // :(
+        }
+    }
+}
+
+Example 3:
+   Now we get the value into the task, process that value and provide the result
+
+public class SummingNumbersCallable
+        implements Callable<Integer> {
+
+    private int x, y;
+
+    public SummingNumbersCallable(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public Integer call() {
+        return x + y;
+    }
+}
+
+
+public class Example3 {
+
+    public static void main(String[] args) throws Exception {
+        ExecutorService service
+                = Executors.newFixedThreadPool(4);
+
+        var c = new SummingNumbersCallable(3,5); // 8
+
+        Future<Integer> f = service.submit(c);
+
+        Integer sum = f.get();
+
+        System.out.println(sum);
+    }
+}
+
+Different Implementation of Executors
+
+Example 1:
+
+public class Example1 {
+
+    public static void main(String[] args) {
+        // Runtime.getRuntime().availableProcessors();
+        ExecutorService es1 = Executors.newFixedThreadPool(4); // param is the no of threads, take from the beginning a fixed number and it creates the pool with precisely that number of threads and the number of threads wont become smaller and it wont become larger during the execution of the app, once the pool is created thats the number that will be used for that pool and you rely that always be that many threads into the pool 
+
+        ExecutorService es2 = Executors.newSingleThreadExecutor(); // equivalent to fixed thread pool with one thread, we have task but you dont need multiple threads, u need only a pool with a single thread then easiest choice is singleThreadExceutor  
+
+        ExecutorService es3 = Executors.newCachedThreadPool();  //creates threads while they are needed, so when you throw tasks into the pool, if the task cannot be taken by any thread because all the threads are already busy, it creates a new thread, it dosent actually store all the thread but it keeps them for a period of time of 60sec and thats why it is called as cached thread pool because it caches the thread for 60sec and if for 60sec the thread dosent get any new task to execute then it will be discarded and if it gets a new task then it will start working on that task and if u throw one more task into the pool and no more threads to execute the task then the pool will create a new thread for you. Number of threads increasing if number of tasks that you throw into the pool and also decreasing when you dont send any tasks into the pool.
+   60sec is fixed by the implementers and it cant be changed 
+
+        ExecutorService es4 = Executors.newWorkStealingPool();
+//It is added in JDK8 and working on an algorithm called work Stealing algorithm, consider we have 4 threads T1,T2,T3,T4 and each thread execute the multiple task in a queue and execute one task at a time. For example T1 thread have 3 task in queue and T2,T3,T4 having each of them a task that they need to execute, at somepoint T2 ends with executing the task and it remains without the task, so T2 is allowed to steal one of tasks from T1 and put into its execution. The thread can steal task from another one and execute them if it remains without work 
+    }
+} 
+
+
+Example 2:
+public class Example2 {
+
+    public static void main(String[] args) throws InterruptedException {
+        ScheduledExecutorService es1 = Executors.newSingleThreadScheduledExecutor(); // one thread, to add a task to be scheduled on a separate thread then we use this implementation with single thread 
+//        ScheduledExecutorService es2 = Executors.newScheduledThreadPool(4);   //same as fixedThreadPool where we have scheduled tasks executing in parallel then we need to have multiple threads 
+
+//create a task and execute after sometime we put into pool
+        Runnable r1 = () -> System.out.println(":)");
+
+//schedule the task with Runnable r1, delay of time after the task will be executed and time unit like seconds,min or hours
+        es1.schedule(r1, 5, TimeUnit.SECONDS);
+
+        Thread.sleep(6000); // 6 seconds 
+
+        es1.shutdown();
+    }
+}
+
+After 5sec we can see smiley face prints in the console, we added sleep() just to make sure u allow enough time for the task to be executed, because if we dont add sleep() and we shutdown() then actually my appl will shutdown the pool and will close completely before allowing the task to execute and then see nothing in console, so we have delay in 5sec and also sleep for 6sec just to make sure we can see something in console 
+   When we start ur appl we can see it will wait for 5sec and print the smiley and after 1 more second the appl is stopped automatically
+
+Example 3:
+public class Example3 {
+
+    public static void main(String[] args) throws InterruptedException {
+        ScheduledExecutorService es1 = Executors.newSingleThreadScheduledExecutor();
+
+        Runnable r1 = () -> System.out.println(":)");
+
+//intial delay of 3sec, interval of time of 5sec
+        es1.scheduleAtFixedRate(r1, 3, 5, TimeUnit.SECONDS);
+
+        Thread.sleep(15000); // 15 seconds
+
+        es1.shutdown();
+    }
+} 
+
+scheduleAtFixedRate() method which instruct ur scheduledExecutorService to execute a specific task only with Runnable and specify the delay so the time between the tasks (ie) time between the start of first task to be executed and the period which is the delay between the task.
+    When we run first smiley prints in console after 3sec delay and each smiley prints after 5sec interval until 10 sec sleep, so shutdown will happen before 4th smiley prints 
+
+Example 4:
+public class Example4 {
+
+    public static void main(String[] args) throws InterruptedException {
+        ScheduledExecutorService es1 = Executors.newSingleThreadScheduledExecutor();
+
+        Runnable r1 = () -> System.out.println(":)");
+
+        es1.scheduleWithFixedDelay(r1, 3, 5, TimeUnit.SECONDS);
+
+        Thread.sleep(15000); // 15 seconds
+
+        es1.shutdown();
+    }
+}
+
+In scheduleAtFixedRate() immediately after starting the task its start to countdown the seconds and after 5sec it will immediately start a new one and here is a task at somepoint will go over and after 5sec u will have second task executing and it also take longer than 5sec, so u might have specific interval of time where u might have more than 1 task is executing because in fixedrate method it dosent care if the task that u have added to ur pool ends, it will simply just create one more task after the time  of 5sec finished
+    But in case of fixedDelay() after an initial time of 3sec we starts the first task and then say that task takes more than 5sec and only after that task ends it comes down 5 more seconds and basically adds the new task, so here 5sec is basically time between the end of the task and beginning of next task, so the total time will be x+5 sec (ie) time of execution of first task is 'X' sec and 5 sec delay so totally 11sec 
+
+
+ForkJoin framework
+    - ForkJoin pool is thread pool and inside we have task.
+    - We take large task and split into smaller task and those task will be executed by ForkJoin on different thread. In some situation you can implement tasks recursively (ie) split the tasks into smaller tasks so that u actually split them again and again, after somepoint there is no need to split them anymore because they became small to execute directly and combine those results of all the execution such  that in the end we get total result of full task 
+    Consider we have bigger task and split it into T1 and T2 smaller task and again split it into T1 (T1.1, T1.2), T2 (T2.1, T2.2) upto somepoint where u consider that tasks are more enough to execute them and combine those results to get the total result 
+   - The type of task is RecursiveAction which is equivalent to Runnable since it dosent return anything 
+    RecursiveTask which is equivalent to Callable since it returns some value 
+
+Semaphore Blocking Objects
+    - Semaphore is class of java.util.concurrent package 
+    - The idea of blocking object is to make synchronization on one to multiple threads for block of code. The only way we discussed about synchonization is by using synchronized keyword either inside method or synchronized block of object.
+    - So can we have synchronized block in which we allow multiple threads but a fixed number lets say 2 or 4 or 10. Can we limit the number of threads that are acting on specific block of instructions. With synchronized we cant do that because synchronized is limited to 1, so we have 1 thread inside synchronized block and thats not changing. 
+   - By using blocking object called Semaphore which enables u to define a block of code, inside which we can have limit of number of threads that can be active.
+   - So instead of using synchronized block we create instance of Semaphore with 2 constructors.
+   Semaphore(int) - specify the number of threads it allow n threads to active on specify block of code
+   Semaphore(int thread,boolean fair) - 
+   true - Fair semaphore - The order in which threads gets acquire is preserved in queue and threads will get into block of code of Semaphore in the order in which they have reach the acquire() 
+   false - Non fair semaphore - JVM decides to take one of the thread from the pool and it might not necessary be the order in which they reached the acquire()
+   - Next we define block of code using acquire() of Semaphore, so acquire() is used to start the semaphore block of code and release() is used to end it inside finally block. So between acquire() and release() u can only have maximum 4 threads active. Consider if we have T1,T2,T3,T4,T5 threads, only T1,T2,T3,T4 threads can get into block of code and T5 will able to enter block of code only if one of the threads has release the lock. So purpose of Semaphore is to make sure if we have block of code where u have limited number of threads 
+   - Consider u have designed an appl and it has to call an external service, the developers of external service system allow to call maximum 10 calls simultaneously. So an easy implementation to make sure that when ur appl is working we can call with 10 simultaneous request by using semaphore. It is blocking object since it is blocking the thread at some point.
+
+
+public class Example2 {
+
+  private Semaphore semaphore = new Semaphore(4, true);
+
+  public static void main(String[] args) {
+    // Sempahore  -> synchronizations
+  }
+
+  public void m() {
+    try {
+      semaphore.acquire();
+      // something happens here
+    } catch (InterruptedException e) {
+
+    } finally {
+      semaphore.release();
+    }
+  }
+
+  public void n() {
+    //  T3
+    synchronized (this) {
+
+    }
+  }
+}
+
+
+CyclicBarrier
+    We have rectangle which is block of code which is to be synchronized, if we use cyclic barrier it actually acts as a stoper for the threads and make sure that, it allows the thread to continue in executing the block of code only when they are at specific number, the number is decide when we create the barrier 
+    Barrier is actually works as opposite of Semaphore, the semaphore did allows only specific number of threads to enter whereas cyclicbarrier waits for number of threads and allows all of them to enter block of code, only they are specific number and that number decided at the moment of creation of barrier
+     Consider we have thread T1 executes some code and reaches barrier of 3, if it is first thread then it will stop by the barrier and the barrier will wait for 2 more, so basically the number is thread expected by the barrier to allow the threads to enter synchronized block of code. Consider now we have another thread T2 and at the moment both of the threads are blocked by the barrier and it still expects one more thread to arrive, so when thread T3 arrives then all of the thread will be allowed to pass the barriers.
+    So barrier is isnt allow the thread to stepin until they reaches the specific number and only they are at specific number they are allowed to entire the block of code 
+
+1. Create task called MyTask which prints the value in console and implements Runnable interface. Create CyclicBarrier inside constructor and specify the number of threads (ie) 3 threads
+   await() is a method which stops the thread and make sure it waits for the specific number u have specified. When we call await() without any parameter it completely starts the execution of current thread. This method throws InterruptedException in which the thread is interrupted when thread is in blocked state and BrokenBarrierException in which the exception signalling something is wrong with the barrier and it will thrown if barrier dosent stop the threads
+
+public class MyTask implements Runnable {
+
+  private CyclicBarrier barrier;
+
+  public MyTask() {
+    barrier = new CyclicBarrier(3);
+  }
+
+  @Override
+  public void run() {
+    try {
+      barrier.await(); // barrier blocks your threads
+      System.out.println(":)");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+We create 3 threads and first one will be blocked, second also blocked and third reaches await() then all 3 threads step into System.out.println(":)"); line, so it will print 3 smiley faces in the console instead of one after the other. So barrier does a blocking object, it stops the thread until it reaches the specific number of threads u specify when u create barrier itself 
+   The second implementation of await() which is overloaded method holds a timeout which is time barrier expects (ie) if barrier has timeout of 10min, it only expects for this maximum time, if maximum time is reached and number of threads didnt reach the barrier then barrier will thrown an exception and tells that timeout has reached. This overloaded method is used in real world scenarios 
+   getNumberWaiting() - returns the number of waiting threads on barrier 
+   getParties() - create the barrier with number of thread
+
+
+Now we create ExecutorServices with newFixedThreadPool, and when we use cyclicBarrier make sure you have enough thread, Consider we create thread pool with 4 threads, newFixedThreadPool(4) and it is bigger number than parties in cyclicbarrier as 3. So if newFixedThreadPool number is smaller than parties in cyclicbarrier, then u will always encounter with deadlock.
+   Eventhough we have number of threads, u also need to have enough tasks to execute otherwise cyclicbarrier is still continue to execute
+
+public class Example1 {
+
+  public static void main(String[] args) throws Exception {
+    ExecutorService service = Executors.newFixedThreadPool(100);
+
+    MyTask t = new MyTask();
+
+    service.submit(t);
+    Thread.sleep(1000);
+    service.submit(t);
+    Thread.sleep(1000);
+    service.submit(t);
+
+    service.shutdown();
+  }
+}
+
+Here first it throws the task and waiting 1sec then it again throws new task and again waiting for 1sec and again throws the task. Since we have barrier instead of printing smiley face in difference of 1sec we basically see them all 3 faces printed in the console on same time because the barrier locks the thread and it only allows all the thread to continue at sametime and reach the barrier. If we comment barrier.wait() in MyTask and run then we can see smiley face will be printed after 1sec interval. 
+
+Semaphore is opposite of cyclicbarrier, if we have semaphore of 3 then it means that it can have 3 threads they can entire the synchronized block and if we have 4th one then it will be stopped by semaphore, if one amoung 3 threads finish its execution then the 4th will enter into the sync block. So with semaphore we can limit the number of threads that access specific synchronized block.
+   Readwritelocks is similar to semaphore, unlike semaphore it has 2 levels of synchronization, we have operation that are reading and writing means we have more than 1 thread at same time to specific block but exclude other blocks where specific other operation is writing.
+
 
