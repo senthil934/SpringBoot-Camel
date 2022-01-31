@@ -1,3 +1,25 @@
+Nowadays the most popular domain that is banking where this batch processing being used, for example a customer using credit card and we do some shopping ot transaction using this credit card, but if we login back to our account through netbanking this transaction detail is not reflecting immediately, its taking some time to reflect their, because this transaction detail is being available in some other appl which belongs to different system, coming to customer account where we see this detail is belong to some other appl which have their own system and own databases. So inorder to get information from one system to other batch processing comes into picture and transfer those data from one system to other.
+    In education system we retrieve some sms, mails or some notification regarding fees due date or holiday or results got processed that is also called batch processing. Similarly in retail domain which deals with lot of products and they update the data frequently from other system which communicate the inventory to get the availability details, to data back from one inventory system to other we use batch processing
+   Any of the system not communicate with someone else database directly or not using any webservice to get data ir load into cache that also happening only once in the day, in retail domain some reports that getting generated in end of the day or week or month based on their need and all this stuff is happening through  batch processing. In healthcare we are getting health reports or any diagnosis reports 
+
+Introduction to Spring Batch
+    - It is developed by Spring community, it is an open source, very lightweight and this framework has been designed to solve enterprise problem and reduce lot of times of developer
+    - Spring batch helps large volume of records including logging data, transaction data, flat file data, it will process that data and finally write in proper format in target system. In spring batch even we can start the job, stop the job, skip the job and if something happens even we can retry the job 
+
+Features
+   - Developers can concentrate on implementation, for eg if we try to read the file and persist into database and we need not worry about how to read the file, how to persist and how to handle exception etc will be take care by spring batch
+   - Decoupling between different layers is easy - Spring batch have lot of layers like reader,writer,processor and listener these are independent and out of appl, there is no coupling between business logic code and their frameworks 
+   - Spring batch provides over 17 ItemReader and 15 ItemWriter implementation 
+   - Transaction management
+   - Chunk based processing 
+     1. Consider we transfer money through NEFT it will take minimum 30 min. Now when we submit the transaction and at same time another 100 people wants to do NEFT transaction, so it will stored in batches, after certain amount of time based on their configuration at server that job will triggered and then job will pick all transaction and it will start the processing. 
+     2. Used for settlement purpose (ie) each and every month u will be getting credit card statement. Consider first week of every month so same date from same bank another 1000 customers credit card report will be generated and send to mail id. So it will run batch process on that time and capture all data, process and generate complete pdf file and automatically trigger to ur mail id 
+   - Job start/stop/restart - If something went wrong while processing the data, then again we have to rerun everything.  Consider we have file with 10L records and something went wrong after 5L records then we have to process from scratch, but there might be some problem if we process the data again. In such case we can restart the job instead from scratch 
+   - The ability to skip and retry records as they are being processed - If we are reading file or database we want to skip some records due to some reason then we con configurable using spring batch  
+   - Job processing statistics
+        Consider we are running any job with help of Spring batch, one of batch may be succeed or failure due to certain reason, so u can find out using their statistics
+
+
 Spring Batch is used to execute series of job at a particular point of time 
 
 Initially we have do everything manually now if we want automate that process at particular time. For example daily when time reach 6pm we want to execute some sort of job automatically we dont want to depend manually
@@ -483,3 +505,159 @@ Spring Batch Components
 
 7. ItemWriter
       This interface is used to write bulk data, either to a database or any other file disks
+
+
+
+Spring Batch using TaskExecutor
+https://www.youtube.com/watch?v=jnzwby9j_IU&list=PLcBLw_ZTOt-36lnUe1GNRMtxYC2miGhy0&index=9
+https://github.com/javacodingskills/SpringBatch
+
+    Here we will read the file in faster way using multithreading concept where we reading the file using multiple thread instead of one thread so we can read the file very fastly using TaskExecutor interface 
+
+Step step = stepBuilderFactory.get("ETL-file-load")
+                .<User, User>chunk(100)
+                .reader(itemReader)
+                .processor(itemProcessor)
+                .writer(itemWriter)
+                .taskExecutor(taskExecutor())
+                .build();
+ @Bean
+    public TaskExecutor taskExecutor(){
+        SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
+        simpleAsyncTaskExecutor.setConcurrencyLimit(5); //how many threads to introduce
+        return simpleAsyncTaskExecutor;
+    }
+
+Spring batch ExecutionContext
+https://github.com/javacodingskills/SpringBatch/tree/master/11_SpringBatch_Demo6_JobExecutionContext
+    - It is similar with Http request object and session object where we will keep something in key value format and using in appl throughout the session scope or request scope. Similarly JobExecution is something we put into ExecutionContext and use it throughout the Job execution.
+   - Suppose we are reading some data from file then we are processing and inserting into db and vice versa, so there might be certain situation where we must access some information at processing layer which we are not reading from the file. So in the processing layer we have that much information which is coming from file (ie) reading from file but not other information. If we want to read such kind of data which is not available in processing layer, where we can get it, it is one of use case of Execution Context 
+    Consider we are reading a file, we are putting something as key as string and value as object  in ExecutionContext and now that will be available in processing part also and now we also can add some key value pair in processing layer and now both will be available in writer layer 
+
+executionContext.putString("customFileName", "employee.csv");
+
+Fault tolerance in Spring batch using Skip policy 
+     Skip policy is very important in batch processing, so performing any operation on the data if something went wrong then there is a chance to get execption. Suppose we are going to read a file where there are 100 records are there, we are start reading from 1st record the moment we are about to finish the job (ie) in 99th record there is some exception occurs due to bad record or processing logic or forget to handle exception, so rather failing the particular record, the entire job fails in batch processing. In order to avoid that we use skip policy 
+    Consider inside csv file for age we give some string and when we run the appl it will show some exception 
+
+public class JobSkipPolicy implements SkipPolicy {
+    @Override
+    public boolean shouldSkip(Throwable throwable, int failedCount) throws SkipLimitExceededException {
+
+        return (failedCount >= 1) ? false : true;
+    }
+}
+
+@Bean
+    public JobSkipPolicy skipPolicy(){
+        return new JobSkipPolicy();
+    }
+
+ @Bean
+    public Step step1Demo6() throws Exception {
+        return this.stepBuilderFactory.get("step1")
+                .<EmployeeDTO, Employee>chunk(1)
+                .reader(employeeReader())
+                .processor(employeeProcessor)
+                .writer(employeeDBWriterDefault())
+                .faultTolerant().skipPolicy(skipPolicy())
+                .build();
+    }
+Now when we run it will skip the failed record and continue to insert other fields
+
+
+Listener in Spring batch 
+    It is more about interceptor or filters in spring batch. Suppose we have one batch and we want to do some operation before starting the job like retrieving the job while job execution gets started and after finishing the job we want to do some operation 
+    So something if we want to intercept before or after the job execution then we use listener
+
+2 types:
+1. Job listener which is specific to job execution, we can do before or after the job execution 
+2. Step listener apart from before or after executing step, it can also be done when some error occurs while 
+reading or processing or writing 
+
+Job Listener
+    Something we want to perform before or after the job execution
+
+1. Create JobListener which implements JobExecutionListenerSupport and override afterJob and beforeJob methods
+
+public class JobListenerDemo extends JobExecutionListenerSupport {
+
+    @Override
+    public void beforeJob(JobExecution jobExecution) {
+        System.out.println("Before "+jobExecution.getJobInstance().getJobName()+" execution");
+        jobExecution.getExecutionContext().putString("beforeJob","beforeValue");
+    }
+
+    @Override
+    public void afterJob(JobExecution jobExecution) {
+        System.out.println("After Demo7 execution. The value of beforeJob key is="+jobExecution.getExecutionContext().getString("beforeJob"));
+        if(jobExecution.getStatus().equals(BatchStatus.COMPLETED)){
+            System.out.println("Success!");
+        }else{
+            System.out.println("Failed!");
+        }
+    }
+
+}
+
+2. Configure JobListener as bean and configure inside the job
+
+    @Bean
+    public JobListenerDemo jobListenerDemo() {
+        return new JobListenerDemo();
+    }
+
+  return jobBuilderFactory.get("ETL-Load")
+                  .incrementer(new RunIdIncrementer())
+                  .start(step)
+                  .listener(jobListenerDemo())
+                  .build();
+
+StepListener
+     In Joblistener we have can do only 2 things either before or after jobs, so if we want to perform any operation before a step is started 
+     So Step is combination of 3 parts Reader,Processor and Writer part. If we want to perform some operation before reading the file or before reading record from the database. Basically if we reading something it will go to the processor,but due to some reason if we skip the records, and if u want to track how many record got failed and wht reason, for that we can use StepListener 
+    If you register the listener to the steps similar to the JobListener register to the job, generally 3 types ItemReadListener, ItemProcessListener(when processing the data when something went wrong) and ItemWriteListener 
+
+1. Create csv file with bad records
+
+2. Create ReaderListener class
+
+public class ReaderListener implements ItemReadListener<User> {
+
+    @Override
+    public void beforeRead() {
+        System.out.println("Before Read Operation.");
+    }
+
+    @Override
+    public void afterRead(User user) {
+        System.out.println("After Reading :" + user.toString());
+    }
+
+    @Override
+    public void onReadError(Exception e) {
+        System.out.println("On error while reading :" + e.getMessage());
+    }
+}
+
+3. Configure ReaderListener as bean class 
+
+@Bean
+    public ReaderListener readerListener(){
+        return new ReaderListener();
+    }
+
+Configure the listener for Step
+
+Step step = stepBuilderFactory.get("ETL-file-load")
+                .<User, User>chunk(10)
+                .reader(itemReader)
+                .processor(itemProcessor)
+                .writer(itemWriter)
+                .listener(readerListener())
+                .faultTolerant().skipPolicy(skipPolicy())
+                .build();
+
+When we run the program we can see for good records u can see before read and after read and for one bad record we can see onError message 
+
+ 
