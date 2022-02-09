@@ -2175,6 +2175,64 @@ public class Partitioning {
     }
 
 
+Parallel Streams
+  - From normal stream we use parallel()
+  - From collection we use parallelStream()
+
+Example 1:
+public class Example3 {
+
+	public static void main(String[] args) {
+		Stream.of(1,2,3,4,5,6,7,8,9)
+				.parallel()
+					.forEach(n -> {
+						System.out.println(Thread.currentThread().getName() + " " + n);
+					});
+
+	}
+}
+If we add parallel() it becomes parallel streams and it will take the value and executes the operation on different threads. The parallel streams creates the pool and the task will now be taken and executed by threads inside that pool. So forEach() is not executed on same thread, so when we run the numbers wont be in same order and when we print the thread name instead of main thread everythere, this parallel streams uses forkjoin behind so each of tasks has been splitted into subtasks and have been executed by different threads, and not mandatory that all tasks have different threads but there will be more than 1 thread, and apart from that it also uses main thread since everything starts from main thread 
+
+Example 2:
+public class Example5 {
+
+	public static void main(String[] args) {
+		Stream.of(1,2,3,4,5,6,7,8,9)
+				.parallel()
+				// some things
+				.forEachOrdered(n -> {
+					System.out.println(Thread.currentThread().getName() + " " + n);
+				});
+
+	}
+}
+To synchronize the thread and reorder them so that it will come in same order we use forEachOrdered()
+
+Example 3:
+public class Example4 {
+
+	public static void main(String[] args) {
+		List<Integer> list = Arrays.asList(1,2,3,4,5,6,7);
+
+		long t1 = System.currentTimeMillis();
+
+		list.parallelStream()
+				.map(n -> {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					return 2 * n;
+				})
+				.forEach(System.out::println);
+
+		long t2 = System.currentTimeMillis();
+
+		System.out.println(t2 - t1);
+	}
+}
+When we use parallelStream() it will take less second comparatively if we use stream() instead of parallelStream(), because all my 7 tasks they need 1sec to be executed and in this my computer takes them and executes in parallel 
 Interface
 
 1. Interface contains public static final constant variable
@@ -2196,7 +2254,6 @@ public /*abstract*/ interface InterfaceSummary {
     private static int privateStaticMethod(){ return CONSTANT;}
 
 }
-
 Instance method in interface can access static method
    - abstract
    - default
@@ -4545,7 +4602,7 @@ public static void main(String[] args){
 }
 
 Problem with JDK7:
-    1. The resource reference variables which are create doutside of try block cannot be used directly in try with resources 
+    1. The resource reference variables which are created outside of try block cannot be used directly in try with resources 
 
 
 8. Factory method to create unmodifiable collection
@@ -4740,8 +4797,10 @@ Example 3:
     Here we create unnormalized path which means the shorter version of path 
    ./ - current dir    ../ - parent directory 
 We can normalize and reduce to smaller path using normalize(). We can normalization when we find current dir or parent dir, current dir we can simply remove it, because it is samething with or without, so now we have 
-   a/b/c/./././d/../../c
-   a/b/c/d/../../c
+          a/b/c/./././d/../../c
+ Step 1:  a/b/c/d/../../c  - remove all current directory 
+ Step 2:  a/b/c/../c - parent directory removes the file up one level (/d/../)
+ Step 3:  a/b/c - parent directory removes the file up one level(/c/../)
 When we have parent dir, it will always remove the file up one level,so finally we have a/b/c
     a/b/c/d/../../c
     a/b/c/../c
@@ -4762,15 +4821,16 @@ public class Example3 {
     Path p2 = Paths.get("a/../../../b"); // relative
 
     /*
-    *  ../../b (we dont have parent to remove it after a/../
+       a/../../../b - we remove (a/../)
+    *  ../../b (we dont have parent to remove it after a/../)
      */
-    System.out.println(p2.normalize());
+    System.out.println(p2.normalize());  // ../../b
 
     Path p3 = Paths.get("/a/../../../b"); // absolute /b
 
     /*
         /a/../../../b
-        /../..b  - in this case parent dir acts like current dir so we can just remove it 
+        /../..b  - in this case parent dir acts like current dir so we can just remove it, since we dont have anything above the root
         /b
     */
         
@@ -4779,11 +4839,11 @@ public class Example3 {
   }
 }
 
-
 Example 4
    - resolve is kind of concatentation of paths 
    - For relative path is just simple concatentation
    - For absolute path
+
 public class Example4 {
 
   public static void main(String[] args) {
@@ -5946,3 +6006,282 @@ Semaphore is opposite of cyclicbarrier, if we have semaphore of 3 then it means 
    Readwritelocks is similar to semaphore, unlike semaphore it has 2 levels of synchronization, we have operation that are reading and writing means we have more than 1 thread at same time to specific block but exclude other blocks where specific other operation is writing.
 
 
+CountDownLatch and atomic objects
+      CyclicBarrier contains number of parties which represents the number of threads that the barrier expects and only when the barrier gets with all these threads and actually continue their execution. So number of parties decrementing each time when new thread awaits in front of barrier and when actually number of parties equal to number of threads waiting then all of the threads are going to released by barrier.
+  We have Runnable which prints something in the console and before printing smiley face, we call await() which wil block the thread and allow the thread to continue to execute only when barrier finds the number of threads are waiting equals the number of parties
+  To make it work we create ExecutorService with newFixedThreadPool(3), where we have minimum 3 threads in the pool and if u have smaller number of threads than number of parties then we enter deadlock. Next we call the submit() with task Runnable r 3 times in thread pool and finally shutdown(), then each thread in thread pool will take the task, each task will stopped in await() until all task are there and then all of them with all together continue their execution and we can see smiley face 3 times in console 
+
+public class Example1 {
+
+  public static void main(String[] args) {
+    CyclicBarrier c = new CyclicBarrier(3);
+
+    Runnable r = () -> {
+      try {
+        c.await();
+        System.out.println(":)");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    };
+
+    ExecutorService service = Executors.newFixedThreadPool(3);
+
+    service.submit(r);
+    service.submit(r);
+    service.submit(r);
+
+    service.shutdown();
+  }
+}
+
+Example 2:
+public class Example2 {
+
+  public static void main(String[] args) {
+    CountDownLatch c = new CountDownLatch(3);
+
+    Runnable r = () -> {
+      try {
+        c.await();
+        System.out.println(":)");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    };
+
+    ExecutorService service = Executors.newFixedThreadPool(3);
+
+    service.submit(r);
+    service.submit(r);
+    service.submit(r);
+
+    service.shutdown();
+  }
+}
+
+CountDownLatch also have number of permits and when we run the example we cant see any smiley face in the console and the appl will simply stucks, the main difference between countdownlatch and cyclicbarrier is await() of countdownlatch dosent affect the number of permits. So countdownlatch expects me to countdown as long as when we never count it down nothing happens and basically await upto undetermine timing.
+   So in countdownlatch before await(), we will call countDown() which actually counts down the fact that countdownlatch expects less with 1 thread (ie) before waiting the thread itself will notify countdownlatch that one more thread awaits their and decrements number of permit which will in the end after adding 3 tasks and those tasks will be taken by threads and results in printing smiley face in console
+
+public class Example2 {
+
+  public static void main(String[] args) {
+    CountDownLatch c = new CountDownLatch(3);
+
+    Runnable r = () -> {
+      try {
+        c.countDown();
+        c.await();
+        System.out.println(":)");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    };
+
+    ExecutorService service = Executors.newFixedThreadPool(3);
+
+    service.submit(r);
+    service.submit(r);
+    service.submit(r);
+
+    service.shutdown();
+  }
+}
+
+Now we have 3 countdownlatch so countDown() will executed 3 times and when number of permits becomes 0 for countdownlatch and all the threads able to continue and allow to pass await() and prints smiley face in console 
+
+Example 3:
+public class Example3 {
+
+  public static void main(String[] args) {
+    CountDownLatch c = new CountDownLatch(3);
+
+    Runnable r = () -> {
+      try {
+        c.await();
+        System.out.println(":)");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    };
+
+    Runnable q = () -> {
+      try {
+        Thread.sleep(2000);
+        c.countDown();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    };
+
+    ExecutorService service = Executors.newFixedThreadPool(4);
+
+    service.submit(r);
+    service.submit(r);
+    service.submit(r);
+
+    service.submit(q);
+    service.submit(q);
+    service.submit(q);
+
+    service.shutdown();
+  }
+}
+
+In the above example we create countDown() in separate Runnable task which counts down. To make our demo easier lets make second Runnable countDownLatch only after defined period of time, so here it wait for 2sec and then count down the latch. So when we put all tasks in ExecutorService, u can see all smiley faces will be printed but they will be printed after 6sec.
+  
+
+Example 4:
+public class Example4 {
+
+  static Semaphore s = new Semaphore(1);
+
+  public static void main(String[] args) {
+    demo();
+  }
+
+  static void demo() {
+    try {
+      s.acquire();
+      System.out.println(":)");
+      demo();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } finally {
+      s.release();
+    }
+  }
+}
+When we execute we get 1 smiley face and appl stucks on second execution of demo().
+When we run the program we get stack overflow at somepoint because we continue calling demo() again and again and somepoint stack will be full and get stack overflow. But in this situation we wont get stack overflow because we are using Semaphore with permit of 1, it will block recursive call when it comes to acquire(), acquire() will decrement the number of permits of Semaphore which will make Semaphore to get into 0 so no more thread can enter acquire(). So first thread manage to enter acquire() and decrement the permit will print smiley face and then it will try to recursively call demo() which again call acquire() but when same thread now gets into acquire() then it gets stucked because there are no more permits for semaphore will block the thread even though its actually the same thread that calls the method. 
+
+Example 5:
+public class Example5 {
+
+  static ReadWriteLock s = new ReentrantReadWriteLock();
+
+  public static void main(String[] args) {
+    demo();
+  }
+
+  static void demo() {
+    try {
+      s.writeLock().lock();
+      System.out.println(":)");
+      demo();
+    } finally {
+      s.writeLock().unlock();
+    }
+  }
+}
+
+So instead of using Semaphore we use ReadWriteLock and the implementation is ReentrantReadWriteLock without any permits. ReadWriteLock have 2 levels of acquiring the lock (ie)read and write, write is exclusively to both read and write locks. So we call writeLock().lock() and writeLock().unlock() instead of acquire() and release().
+   However when we run the above program, it will print lot of smiley faces and along with stack overflow error since demo() is called many times. 
+    The difference between ReentrantReadWriteLock implementation and Semaphore, if we use Semaphore because acquire() dosent have any more permits eventhough the same thread is calling again (ie) main thread, when it try to enter into acquire() the semaphore didnt allow the thread goes further eventhough the same thread is already in one execution of method. But when we use ReentrantReadWriteLock so when it reenter the lock(), now ReadWriteLock allows same thread to go again because the same thread acquires the lock. So it is called reentrant because it allows the same thread to reenter the lock.
+
+Example 6:
+public class Example6 {
+
+  public static void main(String[] args) {
+    // AtomicBoolean
+    // AtomicInteger
+    // AtomicLong
+    // AtomicReference
+
+    AtomicInteger i1 = new AtomicInteger(10);
+    int res = i1.addAndGet(10);
+
+    System.out.println(res);
+  }
+}
+
+public class MyNumber {
+
+  private int x;
+
+  public int addAndGet(int v) {
+    x+=v;
+    return x;
+  }
+}
+
+When u have couple of mutating operations, one can be get and other can be mutating operation on value. If u like to have this operation synchronizing for couple of different threads then we need to deal with synchronization urself.
+    Consider we have MyNumber class with value and addAndGet() method, this method represents 2 operation, it takes parameter "v" and add the value v to x and also returns the result. This kind of method having 2 operations, at the moment the way we created is not synchronized, if we assume the instance of this class will be called from different thread then we need to take care of synchronization myself.
+   When we have something like this method which is simple, u dont have to define for int,long,boolean and even for object values, u dont want to implement this kind of mechanism. Atomic classes will implement something like this and show u that methods which represent behaviour of this classes are synchronized. So instead of create my own class called MyNumber, we can prefer to use AtomicInteger class with initial value as 10 and we have this kinds of methods and they are synchronized.
+
+ThreadLocal
+    - Used to solve the problem of keeping the data on specific thread in a multithreaded architecture. It is part of many implementation of frameworks and tools that we used in implementing enterprise appl, for example we implement an appl using Spring MVC and we want to secure it using Spring security, u will find out that in case of standard servlet appl Spring security keeps the authentication details in an object called SecurityContext which actually manages the data on different request with ThreadLocal 
+    Consider we have 3 threads running at same time in paralled and we have 1 threadlocal instance for my appl, when we use instance of threadlocal for storing a value. Consider thread T1 stores a value "10" in ThreadLocal, and it automatically manages the value and stores it inside cache of the thread so it creates separate area inside. So whenever T1 works with ThreadLocal, the ThreadLocal will refers to that specific managed value for that thread and this value is assigned to T1 and only T1 can access this value 
+   Now T2 access the value of ThreadLocal, if ThreadLocal initially has the value it will return that value otherwise null. So T2 accessing the value of ThreadLocal it wont get the value that T1 has added, so ThreadLocal automatically manages the values to be independent and separate for each individual thread.
+   Now T2 also creates a value say 20 and adds to ThreadLocal then ThreadLocal stores that value separately, so whenever T2 asks for the value it will give its own value. So only this type of object is called ThreadLocal because it localize the value for specific threads, eventhough it is same instance depending on the thread that used to access the value of ThreadLocal, always it returns the correct value of that specific thread 
+     Consider we refer to transaction of specific call, at some point u have thread that executes,during this execution u can imagine it access the database and changes some data in database. What happens if we have different methods and u want to propagate transactions from one method to another method, so we can use threadlocal since methods are called on same thread, you might have multiple threads doing different transactions in parallel, but if we use ThreadLocal u can store transactions itself in threadlocal and methods dont need to have parameters, they can get details from threadlocal. When u use Spring to use transactions, u wont send transactions as parameter, u just annotate with method with @Transactional and spring knows to take transaction from somewhere. So where is that transaction is stored and how does spring knows taking the transaction, it dosent actually take from separate thread because in spring appl we have multiple threads at the same time executing. For each request we have different threads so whenever we create the transaction, we have different transaction created by different threads, so how spring knows to take precisely transactions on specific thread and not other transaction created by another thread, it uses ThreadLocal. With ThreadLocal it makes sure when transaction is created it store the transaction in threadlocal at specific thread, so when asking for transactions it will always take that transaction and not some other transactions 
+
+Example 1:
+public class Example1 {
+
+	static final ThreadLocal<Integer> local
+			= ThreadLocal.withInitial(() -> 0);
+
+	public static void main(String[] args) {
+		Runnable r1 = () -> {
+			while (true) {
+				try {
+					local.set(10);  // 10
+					Thread.sleep(2000);
+					System.out.println(Thread.currentThread().getName() + " " + local.get()); // 10
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+
+		Runnable r2 = () -> {
+			while (true) {
+				try {
+					local.set(20);  // 20
+					Thread.sleep(2000);
+					System.out.println(Thread.currentThread().getName() + " " + local.get()); // 20
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+
+		new Thread(r1).start();
+		new Thread(r2).start();
+	}
+}
+
+Here we create one instance of ThreadLocal which store Integer with initial value of 0. Now we create 2 tasks using Runnable interface, so in first task we set value 10 and second task we assign the value 20. When we run the appl we can see it prints 2 threads and same value 10 and 20
+
+
+Concurrent Collections
+
+Example 1:
+public class Example1 {
+
+  public static void main(String[] args) {
+    ConcurrentMap<Integer, String> m1
+            = new ConcurrentHashMap<>(); // HashMap / not sorted
+
+    ConcurrentMap<Integer, String> m2
+            = new ConcurrentSkipListMap<>(); // eq with TreeMap / sorted
+
+    ConcurrentNavigableMap<Integer, String> m3
+            = new ConcurrentSkipListMap<>(); // eq with TreeMap / sorted
+
+    NavigableSet<Integer> s1 =
+            new ConcurrentSkipListSet<>(); // TreeSet / sorted
+  }
+}
+ 
+1. ConcurrentMap interface
+        - It extends Map interface and ConcurrentHashMap class as implementation of ConcurrentMap 
+        - ConcurrentMap is a contract which are representing Map which are created to be used in multithreaded env.
+
+ConcurrentMap<Integer, String> m1
+            = new ConcurrentHashMap<>(); 
+ConcurrentHashMap is similar to Hashmap but it is synchronized and use it in multithreaded env because if we try to use hashmap in multithreaded env then we dont use synchronization urself with one of the means like synchronized keyword or by using blocking object 
+
+2. ConcurrentMap that also sort the elements which is equivalent to TreeMap and TreeMap is an non concurrent implementation of Map but it sort the values based on keys in specific order that was natural order of objects given by Comparable or Comparator interface.
+        
