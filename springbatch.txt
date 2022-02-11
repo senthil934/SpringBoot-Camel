@@ -165,6 +165,7 @@ Each time we execute job id will be created
 Connect with http://localhost:8000/h2-console 
 https://grokonez.com/spring-framework/spring-batch/use-spring-batch-tasklet
 
+https://www.yawintutor.com/spring-boot-batch-with-tasklet-example/
 
 
 Spring Cloud Task
