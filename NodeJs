@@ -1,0 +1,2545 @@
+Creating node project
+1. Create package.json
+      >npm init -y 
+
+2. npm cache clean --force
+   npm config set strict-ssl=false
+   npm install
+   npm i --save-dev nodemon
+   npm i --save express
+
+3. "scripts": {
+    "start": "nodemon app.js"
+  },
+
+4. Create and write code inside app.js
+
+5. >npm start
+
+
+Blog article
+
+1. First is to set up the server
+    >npm init -y 
+Which will provide basic package.json 
+
+2. Next we install our dependency like express(used to create the server),mongoose is for database and ejs is for different views
+    >npm i express mongoose ejs
+
+3. Next we install dev dependencies
+     >npm i --save-dev nodemon
+Nodemon is going to allow us to automatically refresh our webpage every single time we make a change to our actual files in package.json and in order to run nodemon we create script in package.json 
+"scripts": {
+     "devStart" : "nodemon server.js"
+ }
+
+Now we create server.js and we run 
+   >npm run devStart 
+so this file server.js is going to run everytime when we make change and click save we see its gonna refresh 
+
+4. Next we create server, so we get express from the library we just installed 
+     const express = require('express')
+
+We also get our app variable and that just comes from calling express and call it as a function 
+     const app = express()
+Now start the appl in port 5000
+     app.listen(5000)
+
+Now go to browser and run localhost:5000, we can see our appl loading and returns "Cannot get /" since we dont have route 
+
+   - Now we create route using app.get("/") which is our main route and this is going to take req and res, for now we send user with response as simple text
+     app.get('/', (req, res) => {
+           res.send("Hello world")
+     }) 
+When we refresh the browser, we can see "Hello world"
+
+   - Instead of printing text we want to print HTML page for that we first need to set our view engine, so we use app.set() and set the engine as ejs because we will writing all views using ejs and then our view engine will convert ejs code to HTML
+      app.set('view engine', 'ejs')   
+
+5. Create new folder called "views/articles" and inside that create index.ejs
+   Inside type ! and click tab button, it will provide html boilerplate code, inside change the title and give some text
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog</title>
+</head>
+<body>
+    <h1>This is HTML</h1>
+</body>
+</html>
+
+So in server instead of sending text, we call render() which access views folder and pass the file we want (ie) index 
+
+app.get('/', (req, res) => {
+    res.render('articles/index')
+}) 
+
+When we save and refresh the browser, we can see "This is html"
+
+6. Now we have bunch of different routes so we need to create new route, so we create routes folder where all of our different routes are going to get stored 
+
+-Create articles.js and put all of the routes directly related to the article, so we first setup express 
+    const express = require('express')
+-Next we want to get our router from express and call as function which is going to give us a router that we can use to create views and using router.get('/') like that. But we need to tell the appl to use this router and in order to do that we need to exports this router 
+
+const router = express.Router()
+module.exports = router
+
+So whenever we require this file we can actually read in this router, so if we go into our server.js we can just require this router which access articles from router
+    const articleRouter = require('./routes/articles')
+Now we have articlesouter which represents articles.js is now we have access to it in server.js file and tell our appl to use this router by app.use() and pass to articleRouter and also tell where our articleRouter to be based on,  because if we look our appl everything is /articles. So every route we create in this articleRouter is going to add at end of /articles 
+    app.use('/articles', articleRouter)
+
+- Now in article.js, we create route called "/" and we want to pass it in our request and response. For now we just send text called "In articles"
+   router.get('/',(req, res) => {
+      res.send('In articles')
+   }) 
+ 
+Now when we run localhost:5000/articles, now it will display "In articles"
+
+7. In server.js, we are already rendering index, now we want to pass all of our articles to index page. In order to do that we just pass an object to our render as key value pairs and this will be avaliable in index.ejs
+     res.render('articles/index', {articles:articles})  
+
+   In index.ejs, we can render out that articles using javascript variables from Nodejs and print   
+      <h1><%= articles %></h1>
+
+   But as of now we dont have any articles, so we create variable called articles which is an array which needs title, date and description for each articles  
+     let articles=[{
+          title: 'Test Article',
+          createdAt: new Date(),
+          description: 'Test description'
+     },
+     {
+          title: 'Test Article1',
+          createdAt: new Date(),
+          description: 'Test description1'
+     }]
+
+8. Next step we make index.ejs more clean using bootstrap
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> 
+
+<div class="container">
+  <h1 class="mb-4">Blog Articles</h1>
+  <a href="/articles/new" class="btn btn-success">New Article</a>
+
+<% articles.forEach(article => { %>
+   <div class="card mt-4">
+       <div class="card-body">
+          <h4 class="card-title"><%= article.title %></h4>
+          <div class="card-subtitle text-muted mb-2">
+              <%= article.createdAt.toLocaleDateString() %>
+          </div>
+          <div class="card-text mb-2"><%= article.description %></div>
+       </div>
+   </div>
+<% }) %>
+</div>
+
+Now when we save and run localhost:5000, it will display both article one by one 
+
+9. Next we create new article route when we click New Article button. So inside article.js we create a route called "/new" and render a page inside articles/new 
+
+router.get('/new', (req, res) => {
+    res.render('articles/new')
+})
+
+10. Create new.ejs inside articles folder 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Blog</title>
+</head>
+<body>
+    <div class="container">
+        New Article page
+    </div>
+</body>
+</html>
+
+When we run and click "New Article" button, it prints "New Article Page"
+
+11. Create form_fields.ejs inside articles folder. 
+<div class="form-group">
+    <label for="title">Title</label>
+    <input required  type="text" name="title" id="title" class="form-control">
+  </div>
+  <div class="form-group">
+    <label for="description">Description</label>
+    <textarea name="description" id="description" class="form-control"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="markdown">Markdown</label>
+    <textarea required name="markdown" id="markdown" class="form-control"></textarea>
+  </div>
+  
+  <a href="/" class="btn btn-secondary">Cancel</a>
+  <button type="submit" class="btn btn-primary">Save</button>
+
+12. Since "New Article" and "Edit" button is going to have same fields, instead of creating twice, we create single form_fields.ejs and include in other program. 
+    Now we include in new.ejs using 
+
+<div class="container">
+            <h1 class="mb-4">New Article</h1>
+        
+            <form action="/articles" method="POST">
+              <%- include('_form_fields') %>
+            </form>
+    </div>
+
+When we run and click "New Articles" button it will go to new.ejs and render the form fields.
+
+13. Now define route for "/articles" with POST request in articles.js, to save this articles to our database, so we need to hookup database to our appl.
+   In server.js we will call mongoose library and using this we can connect to database 
+   const mongoose = require('mongoose')
+   mongoose.connect('mongodb://localhost/blog',{useNewUrlParser:true, useUnifiedTopology: true})
+
+14. Create model where we store our articles, so create models folder, inside that create article.js
+    First we import mongoose, next we create schema which contains all of the different columns our article has like title, description, markDown and createdAt , for each property we specify type and required. 
+    const mongoose = require('mongoose')
+    const articleSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String
+  },
+  markdown: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+})
+
+In order to use this articleSchema, we need to export using mongoose.model() and we need to specify the model name (ie) Article and schema name called articleSchema
+
+module.exports = mongoose.model('Article', articleSchema)
+
+Now we have table in our database called Article with all of these columns specified 
+
+15. Now we import articleSchema in articles.js using
+        const Article = require('./../models/article')
+
+Now we create new Article inside POST request and pass the different options, and in order to access the options from our form inside our post request, we need to tell express how to access them so in Server.js we want to tell our app to use
+      app.use(express.urlencoded({extended:false})) 
+which is used to access all of the different parameters from article form inside article route using "req.body.title" etc. Finally call article.save() to store the data and this is asynchronous function so we set this up inside our own async function and await article.save which is going to save our new article and return article with id. Then we redirect to particlar article based on id and if any error then it render new article page 
+
+router.post('/', async(req,res) => {
+   const article=new Article({
+        title: req.body.title,
+        description: req.body.description,
+        markdown:req.body.markdown
+   })
+   try {
+       article = await article.save()
+       res.redirect(`/articles/${article.id}`)
+   } catch(e) {
+       res.render('articles/new', {article:article})
+   }
+})        
+
+Now create route for page with particular article id
+router.get('/:id', (req,res) => {
+
+})
+
+Now we save and run the appl and enter title, description after that if we click save button everything will be clear out
+
+16. In order to prepopulate with the values of article, whatever the article we pass inside catch block to articles/new, we can use that article inside form_fields.ejs as  value attribute to prepopulate the values
+
+ <input required value="<%= article.title %>" type="text" name="title" id="title" class="form-control">
+
+<textarea name="description" id="description" class="form-control"><%= article.description %></textarea>
+
+ <textarea  name="markdown" id="markdown" class="form-control"><%= article.markdown %></textarea>
+
+When we run and input elements in title,description and click Save button, the data will be prepopulated but when we click Cancel button it will show an error, since we didnt pass article to "articles/new" request
+
+17. So in article.js for "/new" request we pass the article 
+router.get('/new', (req, res) => {
+    res.render('articles/new',{article: new Article()})
+})
+When we run the appl and if we click "Cancel" button it will go to previous page
+
+18.Now we create route "/:id" for newly created article, now we get article passed on id and render that article to new page called "articles/show" and pass the article which is newly created by querying our database by using findById() which is async function and we use await to make sure we way for this article. Before render this article we actually check whether article==null and if we cannot find article we redirect to home page 
+
+router.get('/:id',async (req,res) => {
+  const article = await Article.findById(req.params.id)
+  if(article == null) res.redirect('/')
+  res.render('articles/show',{article:article})
+})
+
+19. Now create show.ejs in articles folder
+
+
+What is Node Js?
+    - NodeJs is an env to run JS outside the browser (ie) it is JS runtime, it is not a lang or framework, so instead of JS running in browser env, it actually running on ur machine as service by using V8 JS engine which is same engine that Google Chrome uses
+    - It is created in 2009 and it is built on top of Chrome's v8 JS engine, written in C++, as we know every browser has an engine, a tool that compiles our code down to machine code. And chrome uses one by the name of v8
+    - Big community since it tremendously saves time on feature development 
+    - We can develop both frontend and backend using JS
+
+Why NodeJS?
+    - Node is extremely fast efficient and also highly scalable because it is event driven and runs on a single loop  and it is non blocking 
+    - Node is often used with frontend frameworks like react,vue and angular because it allows you to use the same lang on both sides 
+
+Non blocking I/O
+     - Node is non blocking and its async, it works on a single thread and uses non blocking io calls. Something like PHP is usually sync and it runs on multiple threads so every time a request is made it spawns a new thread and these threads takes up system memory and waits for one process to complete before starting the next
+     - Node is non blocking and its async, it works on a single thread and this thread can literally support many connections which are held in event loop and this optimizes throughput and scalability in appl with many io operations   
+
+Browser JS                                  NodeJS
+1. DOM					1. No DOM
+   - When we work with NodeJs we dont have access to browser API's so there is no DOM, no geolocation  
+
+2. Interactive apps                     2. Server side apps
+   - Unlike browser apps that are interactive for example user clicks the button or toggles the nav and that sort of thing with node we build server side apps. Our node app will consist of pure logic without the graphical interface
+
+3. Window                             3. No window
+     - On browser app we have many things available on window object, so no window object available in Node so we wont write any document methods in node 
+
+4. No filesystem                      4. Filesystem
+       - Unlike browser we can access file system (ie) info about OS, respond to network quests etc
+
+5. Fragmentation                       5. Version
+     - Node is based on versions, so unlike browser apps which depend on the user's browser. Our node app depends only on nodejs version it was built in (ie) if we build a browser app and if our users browser does not support a specific feature, it is our responsbility to fix it otherwise our app will have some bugs. But when we build node app there is no  rule that we need to upgrade to newer version 
+
+6. ES6 modules                       6. Common JS
+     - unlike browsers our modules are optional, in nodejs we have access to modules by default. Nodejs uses common js library for the modules 
+
+Best types of projects for Node
+    1. REST API & Microservices
+    2. Real time services - Chat,Live updates
+    3. Blogs, Shopping carts, Social Networks
+    4. Anything that is not CPU intensive
+
+https://github.com/john-smilga/node-express-course
+
+NodeJS installation
+1. Install node from nodejs.org/en/ - 14LTS or 15 current
+    Always use LTS(Long term support) for prod since it provides long term support
+
+2. >node --version
+
+How to get node to evaluate our code?
+    - Using 2 ways
+     1. REPL(Read Eval Print Loop)
+         - Open node terminal
+         >node
+           - Now we enter into REPL command 
+         > const name="sam"
+         > name
+              - prints "sam"
+     2. CLI - running our app code in node
+        - Create a folder "node" and open in VS CODE
+        - Create file app.js
+
+const amount =12
+if(amount < 10) {
+    console.log('small amount')
+} else {
+    console.log('Large amount')
+}
+console.log('First node appl!!!')
+   
+    - To run the appl
+   >node app.js
+
+Global variables in node
+    We have different global variables like
+1. __dirname - path to current directory
+2. __filename - file name
+3. require -  which is a function to use modules 
+4. module - gives info abt the current module
+5. process - info about env where the program is being executed 
+  We also have setInterval and setTimeout methods 
+
+globals.js: 
+console.log(__dirname)
+setInterval(() => {
+  console.log('hello world')
+}, 1000)
+
+>node globals.js
+    - Now it will print hello world for every 1sec
+
+Modules in Node
+    - Consider we create app.js where we invoke sayHi()
+
+const john='john'
+const peter='peter'
+
+const sayHi=(name) => {
+     console.log('Hello there ${name}')
+}
+
+sayHi('Jam')
+sayHi(john)
+sayHi(peter)
+
+>node app.js
+
+It makes sense if the names would be separate, as well as functions or future functions that we create would be in separate files and access them all throughout the appland that is exactly wht modules allows to do 
+   So modules are encapsulated code which shares only minimum code. Node uses CommonJS library underhood so every file in node is a module 
+
+1. Create names.js, so if we want to access this module throughout the appl then we need to export it 
+// local
+const secret = 'SUPER SECRET'
+// share
+const john = 'john'
+const peter = 'peter'
+
+module.exports = { john, peter }
+
+2. Create utils.js
+const sayHi = (name) => {
+  console.log(`Hello there ${name}`)
+}
+module.exports = sayHi
+
+3. In app.js we need to access them using require 
+
+const names = require('./names') //always start with ./
+const sayHi = require('./utils')
+
+sayHi('susan')
+sayHi(names.john)
+sayHi(names.peter)
+
+>node app.js
+
+4. Create alternate.js
+      - We create items and object called person
+module.exports.items = ['item1', 'item2']
+const person = {
+  name: 'bob',
+}
+
+module.exports.singlePerson = person
+
+5. Now we call alternate.js inside app.js
+
+const names = require('./names') //always start with ./
+const sayHi = require('./utils')
+const data = require('./alternate')
+console.log(data)
+sayHi('susan')
+sayHi(names.john)
+sayHi(names.peter)
+
+>node app.js
+
+6. Create another.js with some basic functionality
+
+const num1 = 5
+const num2 = 10
+
+function addValues() {
+  console.log(`the sum is : ${num1 + num2}`)
+}
+
+addValues()
+
+7. Now call this js file inside app.js
+
+const names = require('./names') //always start with ./
+const sayHi = require('./utils')
+const data = require('./alternate')
+require('./another')
+
+>node app.js
+    - It prints the output of another.js, so if we set any function inside the module and we invoke that function, it will be execute eventhough we didnt assign to variable and when we import any module using require() it actually invoke the reason is because another.js is not just exported on its own, when the node exports it actually wraps it in the function 
+
+Built in modules
+1. OS
+2. PATH
+3. FS
+4. HTTP
+
+1. OS modules
+      - provides with properties and methods for interacting with OS as well as server
+
+const os = require('os')
+
+// info about current user
+const user = os.userInfo()
+console.log(user)
+
+// method returns the system uptime in seconds
+console.log(`The System Uptime is ${os.uptime()} seconds`)
+
+const currentOS = {
+  name: os.type(),
+  release: os.release(),
+  totalMem: os.totalmem(),
+  freeMem: os.freemem(),
+}
+console.log(currentOS)
+
+Path module
+   - which allows to interact with file paths 
+
+const path = require('path')
+
+console.log(path.sep) //retuns platform specific separator, in this case it returns /
+
+
+//joins sequence of path segments using platform specific separator and returns normalized resulting path. Create "content" folder, inside that create "subfolder" folder and inside that create test.txt file with some content 
+const filePath = path.join('/content/', 'subfolder', 'test.txt')   
+console.log(filePath)  /content/subfolder/test.txt
+
+const base = path.basename(filePath)  //returns file name
+console.log(base)  //test.txt
+
+//resolve() returns absolute path
+const absolute = path.resolve(__dirname, 'content', 'subfolder', 'test.txt')
+console.log(absolute)
+
+File System module
+   - used to interact with file system, we have 2 types when it comes to file module (ie) we can do async non blocking or sync blocking 
+
+fs_sync.js
+
+const { readFileSync, writeFileSync } = require('fs')
+console.log('start')
+
+//create first.txt and second.txt with some content inside content folder
+//readFileSync is used to read file with 2 parameters, we need to provide a path to that specific file and what is the encoding so the node knows how to decode the files 
+const first = readFileSync('./content/first.txt', 'utf8')
+const second = readFileSync('./content/second.txt', 'utf8')
+
+//writeFileSync is used to write to file, where we provide two args, one is filename if the file is not there node will create that file and if it is already existing it will override and second arg is the value that we want to pass. In case if we want to append the data into file then we pass an object with propertyname as flag and value as "a"
+writeFileSync(
+  './content/result-sync.txt',
+  `Here is the result : ${first}, ${second}`,
+  { flag: 'a' }
+)
+console.log('done with this task')
+console.log('starting the next one')
+ 
+
+fs_async.js - readFile and writeFile for async one, we need to provide callback which will be run once our functionality is completed 
+
+const { readFile, writeFile } = require('fs')
+
+console.log('start')
+
+//In readFile() we pass file path to be read and then callback function which takes 2 arguments err and result 
+readFile('./content/first.txt', 'utf8', (err, result) => {
+  if (err) {
+    console.log(err)
+    return
+  }
+  const first = result
+  readFile('./content/second.txt', 'utf8', (err, result) => {
+    if (err) {
+      console.log(err)
+      return
+    }
+    const second = result
+    writeFile(
+      './content/result-async.txt',
+      `Here is the result : ${first}, ${second}`,
+      (err, result) => {
+        if (err) {
+          console.log(err)
+          return
+        }
+        console.log('done with this task')
+      }
+    )
+  })
+})
+console.log('starting next task')
+
+Callback are little messy so alternatives are using promises or async await 
+
+HTTP module
+    - used to setup our web server and setting up the api. Later we use an abstraction on top of the http module which is Express 
+
+http.js
+
+const http = require('http')
+
+//We use createServer() with callback function, in that callback function we have 2 parameters and both are objects, the first parameter represents the incoming request and response is whate we are sending back. Finally we use listen() where our server is going to listen to a port number
+   Next we have res.write() to write the response and once we want to end the request we use res.end()
+
+const server = http.createServer((req, res) => {
+    console.log(req)
+    res.write('Welcome to web page')
+    res.end()
+})
+
+server.listen(5000)
+
+>node http.js
+    
+Run localhost:5000 in browser to see the output and in console we see many properties of req object, we need to use "url" property to return the endpoint the client is requesting 
+
+const server = http.createServer((req, res) => {
+    if (req.url === '/') {
+    res.end('Welcome to our home page')
+  } else if (req.url === '/about') {
+    res.end('Here is our short history')
+  } else {
+    res.end(`
+    <h1>Oops!</h1>
+    <p>We can't seem to find the page you are looking for</p>
+    <a href="/">back home</a>
+    `)
+  }
+})
+
+NPM 
+   - Consider we are building an app with some slider, at this point we have 2 options either build it own ur own or search google and copy paste someones solution. Someone somewhere already faced issue in developing the slider so they have finally created and shared thier code.
+    Now with the help of one command we can just add it to our project because when we install node we automatically also install npm which enables us to do 3 things
+   1. reuse our own code in other projects
+   2. use code written by other developers 
+   3. share our own solutions with other developers 
+
+>npm --v
+
+We can install package as local dependency so we use that package only in that particular project 
+   >npm i <packagename>
+
+We can install dependency as globally and use it in other projects too
+   >npm install -g <packagename>
+
+package.jsp - manifest file which stores important info about project/package - 3 ways to create
+   1. manual approach 
+   2. npm init (step by step,press enter to skip)
+   3. npm init -y (everything default)
+
+Step 1:  >npm init -y
+   - Creates package.json
+
+Why package.json?
+    If we install the package, then it will stored inside the file as dependency inside package.json
+
+Step 2: >npm i lodash
+     - lodash is utility library which will be installed in dependencies section in package.json file 
+     - node-modules folder in which all the dependency will be stored 
+     - >npm i bootstrap
+      Now when we install bootstrap package then we can see jquery as well as popper.js also installed as dependency 
+
+app.js
+
+const _ = require('lodash')
+
+const items = [1, [2, [3, [4]]]]
+const newItems = _.flattenDeep(items)
+console.log(newItems)
+
+Sharing code
+   - We share the code into Github repo without node_modules 
+   - First we create .gitignore file and define 
+        /node_modules
+so it wont push this folder inside github 
+
+>git init
+>git add .
+>git commit -m "Initial message"
+>git remote add origin "giturl"
+>git push -u origin master 
+
+   - Next someone can download the code from github and they can run 
+   >npm install 
+so npm will check for dependencies that we have in package.json and automatically setup the node-modules folder 
+
+   - Nodemon is not used in production but in dev env we use nodemon to restart the appl so we add in dev dependencies. We also add testing,linting, formatting packages etc to dev dependencies
+      > npm i nodemon --save-dev 
+So while sharing the code we just share the dependencies that app is using not the one we used while developed the app
+
+    - Now we change in scripts to run the appl
+"scripts" : {
+    "start": "nodemon app.js"
+ }
+    - Now instead of running "node app.js" we can run as
+     > npm start 
+
+package-lock.json
+   - If we see dependencies we have versions, and some of the dependencies have dependencies on their own, for example person who gets ur project you probably want them to have the same exact setup, so if version changes for some dependency then ur project becomes obsolete so we may get some bugs since version is changing
+   - So package-lock.json will contain specific version for all the packages, not only for dependencies but also for the package that dependency is using 
+    Now as far as this version we have 3 values, the first number is major change so when this changes that means ther are some breaking changes, second one is minor one so it is backward compatible and last one is just a patch for bug fix
+
+
+Event loop
+    - It allows nodejs to perform nonblocking input and output operations inspite of JS is single threaded by offloading operations to the system kernel whenever possible 
+
+1. Javascript is sync and single threaded
+
+console.log("first task")
+console.time()
+for(let i=0;i<10000000;i++) {
+  const h3=document.querySelector('h3')
+  h3.textContent='Hey everyone is waiting'
+}
+console.timeEnd()
+console.log("Next Task")
+
+JS reads everything line by line
+
+2. offload something to browser
+
+console.log("First task")
+setTimeout(() => {
+   console.log("second task")
+}, 0)
+
+console.log("next task")
+
+Here we can offload the task to the browser and only when the task is done then we execute the callback 
+
+   Consider we have an app, it has users and the user is requesting something from the appl and as the requests are coming in, the event loop is responsible for avoiding this type of scenarios. Lets imagine all the users requests are coming in but one user decides that his request thereis going to be time consuming database call,so we need to perform something that takes a long time. So in this case the event loop just registers the callback, so it registers what need to be done when the task is complete because if the event loop wouldnt do that, then we have scenario where the requests are coming in and because user1 is requesting something that takes a long time, the rest of the users would have to wait and its not that actual operation takes long time, its just the fact that we are wasting our time on waiting for that operation to  be done and only then we serve the other users 
+    But event loop registers the callback and only when the operation is complete it executes 
+
+1. readFile.js - async version of read file 
+
+const { readFile, writeFile } = require('fs')
+
+console.log('started a first task')
+// CHECK FILE PATH!!!!
+readFile('./content/first.txt', 'utf8', (err, result) => {
+  if (err) {
+    console.log(err)
+    return
+  }
+  console.log(result)
+  console.log('completed first task')
+})
+console.log('starting next task')
+
+>node read-file.js
+started a first task
+starting next task
+Hello from file
+completed first task
+
+readFile() is async, so event loop will offload this in file system,so we start reading the file then offload the response and only when u get back the result then run the callback, so whether the response is error or success only then we invoke the callback 
+
+2. setTimeout.js
+
+// started operating system process
+console.log('first')
+setTimeout(() => {
+  console.log('second')
+}, 0)
+console.log('third')
+// completed and exited operating system process
+
+Since setTimeout() is async so they get offloaded 
+
+3. setInterval() is async and the difference between setTimeout and setInterval is setInterval runs in those increment in this case 2sec, so every 2sec event loop will invoke callback  
+
+setInterval(() => {
+  console.log('hello world')
+}, 2000)
+console.log(`I will run first`)
+// process stays alive unless
+// Kill Process CONTROL + C
+// unexpected error
+
+4. server.js
+
+const http = require('http')
+
+const server = http.createServer((req, res) => {
+  console.log('request event')
+  res.end('Hello World')
+})
+
+server.listen(5000, () => {
+  console.log('Server listening on port : 5000....')
+})
+
+So when we run localhost:5000, whenever request comes it will invoke callback and prints "request event" in console, here listen() is async and when we set it up, event loop is waiting for those requests to come in and once they come we run our callback 
+
+Asynchronous patterns in Nodejs
+      In file system we discuss about sync and async, while async one is great since we are not blocking the event loop, the problem is if we use callback approach it is messy since we nesting one callback into another 
+
+1. Block.js
+
+const http = require('http')
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/') {
+    res.end('Home Page')
+  }
+  if (req.url === '/about') {
+    // blocking code
+    for (let i = 0; i < 1000; i++) {
+      for (let j = 0; j < 1000; j++) {
+        console.log(`${i} ${j}`)
+      }
+    }
+    res.end('About Page')
+  }
+  res.end('Error Page')
+})
+
+server.listen(5000, () => {
+  console.log('Server listening on port : 5000....')
+})
+
+Incase we kept some blocking code (ie) nested for loop, so if the user navigate to "/about" it gets blocked since we need to wait for some time to complete the loop and if we run other request also it will be blocked, so only loop is finished it will be execute other request, so ur code is messy 
+
+2. example.js
+
+const { readFile } = require('fs')
+
+readFile('./content/first.txt','utf8',(err,data) => {
+    if(err) {
+       return
+    } else {
+       console.log(data)
+    }
+})
+
+Here it prints the data from the file, but the problem starts if we want to perform multiple actions, so if we want to read two files and write into one, so the better soltion is turning the above code into promises and setup async await 
+
+Create getText() which takes path, since we want to read two files and write into one, which returns Promise an dinside promise return another callback function, inside which we pass 2 more function called resolve and reject 
+
+const { readFile } = require('fs')
+
+const getText = (path) => {
+   return new Promise((resolve, reject) => {
+     readFile(path, 'utf8', (err, data) => {
+       if (err) {
+         reject(err)
+       } else {
+         resolve(data)
+       }
+     })
+  })
+ }
+getText('./content/first.txt')
+   .then((result) => console.log(result))
+   .catch((err) => console.log(err))
+
+Once we have turned out into a promise technically we are not out of woods because if we want to read 2 files and write into one and if we want to do all of that async its still going to be messy by using promises, so better solution to use async await then we can wait until promise is settled.
+   Now use a wrapping function to return as promise by using util module
+
+const { readFile, writeFile } = require('fs') 
+const util = require('util')
+const readFilePromise = util.promisify(readFile)
+const writeFilePromise = util.promisify(writeFile)
+
+const start = async () => {
+  try {
+    const first = await readFilePromise('./content/first.txt', 'utf8')
+    const second = await readFilePromise('./content/second.txt', 'utf8')
+    await writeFilePromise(
+      './content/result-mind-grenade.txt',
+      `THIS IS AWESOME : ${first} ${second}`,
+      { flag: 'a' }
+    )
+    console.log(first, second)
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+start()
+
+Now in order to make it simple, we can make fs module to return promises by using 
+
+const { readFile, writeFile } = require('fs').promises 
+
+const start = async () => {
+  try {
+    const first = await readFile('./content/first.txt', 'utf8')
+    const second = await readFile('./content/second.txt', 'utf8')
+    await writeFile(
+      './content/result-mind-grenade.txt',
+      `THIS IS AWESOME : ${first} ${second}`,
+      { flag: 'a' }
+    )
+    console.log(first, second)
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+start()
+
+
+Events in NodeJS
+    When working with browser JS apps, a big part of our work is to handle events, for example user clicks a button, users hovers over the link etc. Essentially as outr prg executes at least in part it is controlled by events so that style of programming is actually called event driven programming
+    Event driven programming is heavily used in nodejs (ie) we listen for specific events and register functions that will execute in response to those events, so once our event takes place callback function is called
+
+Nodes Event loop
+     - It is single threaded and events are run asynchronously 
+     - When an event is triggered a callback fires so this way the system dosent have to run a process and wait for it to end and then run the next like in many sync appl
+     - Event Emitter class is used to bind events and listeners 
+
+event-emitter.js
+
+//create variable EventEmitter which is essentially a class which requires events module
+const EventEmitter = require('events')
+
+//create custom event by creating instance of EventEmitter 
+const customEmitter = new EventEmitter()
+
+//we have many methods for this object like on - listen for an event, emit - emit an event 
+
+//we use on() which passes string (ie) name of the event and 2nd args as callback function
+customEmitter.on('response', () => {
+  console.log('Data received')
+})
+
+//Next we emit the event using emit() with event name
+customEmitter.emit('response')
+
+>node event-emitter.js
+Data received
+
+2. event-emitter1.js - We can emit the same event multiple times and do some other logic
+
+const EventEmitter = require('events')
+const customEmitter = new EventEmitter()
+
+customEmitter.on('response', () => {
+  console.log('Data received')
+})
+
+customEmitter.on('response', () => {
+  console.log('some other logic here')
+})
+customEmitter.emit('response')
+
+
+3. event-emitter2.js - order of methods is important, first we listen to event then emit the event 
+
+const EventEmitter = require('events')
+const customEmitter = new EventEmitter()
+
+customEmitter.on('response', () => {
+  console.log('Data received')
+})
+
+customEmitter.emit('response')
+
+customEmitter.on('response', () => {
+  console.log('some other logic here')
+})
+
+>node event-emitter3.js
+Data received
+
+4. event-emitter4.js - we can pass the arguments when we emitting the event 
+
+const EventEmitter = require('events')
+const customEmitter = new EventEmitter()
+
+customEmitter.on('response', (name, id) => {
+  console.log(`data recieved user ${name} with id:${id}`)
+})
+
+customEmitter.on('response', () => {
+  console.log('some other logic here')
+})
+
+customEmitter.emit('response', 'john', 34)
+
+5. request-event.js
+
+const http = require('http')
+
+//creating server using callback function
+// const server = http.createServer((req, res) => {
+//   res.end('Welcome')
+// })
+
+// Using Event Emitter API
+const server = http.createServer()
+// emits request event
+// subcribe to it / listen for it / respond to it
+server.on('request', (req, res) => {
+  res.end('Welcome')
+})
+
+server.listen(5000)
+
+Streams
+   - used to read and write sequentially, basically when we want to handle and manipulate streaming data, for example continuous source or big file, streams come into picture
+   - 4 types of streams
+     1. writeable - used to write data sequentially
+     2. Readable - used to read data sequentially
+     3. Duplex - used to both read and write data sequentially 
+     4. Transform - where data can be modified when reading or writing 
+
+   - Streams extend EventEmitters class which simply means that we can use events like data on streams 
+   - A good usecase of using Streams when we are reading files, when we use sync or async approach we are reading the whole file and assign to variable, but if we have a big file first we use all that memory and second as the file size gets bigger eventually the variables are not going to be good enough so we get error that size is too big, so the solution would be stream option 
+
+1. create-big-file.js
+We create a big file, for every iteration we create big text with flag append and adding "Hello world"
+
+const { writeFileSync } = require('fs')
+for (let i = 0; i < 10000; i++) {
+  writeFileSync('./content/big.txt', `hello world ${i}\n`, { flag: 'a' })
+}
+
+>node create-big-file.js
+
+Once we got big file, we use streams to read it
+
+2. Stream.js
+
+const { createReadStream } = require('fs')
+const stream = createReadStream('./content/big.txt')
+
+// default 64kb
+// last buffer - remainder
+// highWaterMark - control size
+// const stream = createReadStream('./content/big.txt', { highWaterMark: 90000 }) - when we go for this we can see 2 console log, one 90 bytes and other is remainder 
+// const stream = createReadStream('../content/big.txt', { encoding: 'utf8' }) - when we set encoding we get original text 
+
+stream.on('data', (result) => {
+  console.log(result)
+})
+stream.on('error', (err) => console.log(err))
+
+>node Stream.js
+
+Here we are reading data in chunks and by default that chunk is 64kb and everytime we console log we see that we have 64 and eventually we have the remainder, so instead of reading everything and placing that in variable we are doing that in chunks
+
+3. big-file.js
+       - Now we create very big file 
+
+const { writeFileSync } = require('fs')
+for (let i = 0; i < 1000000; i++) {
+  writeFileSync('./content/big.txt', `hello world ${i}\n`, { flag: 'a' })
+}
+
+>node big-file.js
+
+2. http-stream.js
+      - Creating a http server and we use the readFileSync() and looking for big.txt with encoding utf-8 
+
+var http = require('http')
+var fs = require('fs')
+
+http
+  .createServer(function (req, res) {
+     const text = fs.readFileSync('./content/big.txt', 'utf8')
+     res.end(text)
+})
+.listen(5000)
+
+>node http-stream.js and run locakhost:5000
+      - Now we can see bunch of "Hello World", but the problem goto Inspect - Network - Refresh the page we can see the request was successful but size is high which is very difficult for all ur users because we are sending large chunks of data
+       Click localhost - Headers - Content-length - we can see 1.8mbs, once we refractor to readStream() which sends the data in chunks 
+
+
+http-stream1.js
+
+var http = require('http')
+var fs = require('fs')
+
+http
+  .createServer(function (req, res) {
+    // const text = fs.readFileSync('./content/big.txt', 'utf8')
+    // res.end(text)
+    const fileStream = fs.createReadStream('./content/big.txt', 'utf8')
+
+//we have access to events using on()
+    fileStream.on('open', () => {
+      fileStream.pipe(res) //this method will pushing fron read stream into write stream (ie) if we can read data in chunks we can also write data in chunks 
+    })
+    fileStream.on('error', (err) => {
+      res.end(err)
+    })
+  })
+  .listen(5000)
+
+>node http-stream1.js and run locakhost:5000
+      - Now we can see bunch of "Hello World", goto Inspect - Network - Click localhost - Headers - we cant see content-length instead we can see our response headers are chunked , so instead of sending our file in one large instance we can sending back in chunks 
+
+
+HTTP messages
+     Everytime we opens a browser and we type the url (ie) web address, we actually performing a request to server which is responsible for serving those resources. For example when you look for google.com, u r looking for server that has those resources and then that server sends you back the response which is done using HTTP protocol and they are called HTTP messages, so the user sends hhtp request message and then the server sends http response message 
+    Both request and response have a start line, optional headers and optional body. So request messages are what the user is sending (ie) open a browser to search the web or ur web appl. Next we have to set proper server that sends a correct response 
+
+Express JS
+
+1. https://github.com/john-smilga/node-express-course
+
+2. Create the project 
+
+3. >npm start 
+
+4. http-basic.js
+        - create server using basic http module
+
+const http = require('http')
+
+const server = http.createServer((req, res) => {
+  // console.log(req.method)
+  const url = req.url
+  // home page
+  if (url === '/') {
+    res.writeHead(200, { 'content-type': 'text/html' })
+    res.write('<h1>home page</h1>')
+    res.end()
+  }
+  // about page
+  else if (url === '/about') {
+    res.writeHead(200, { 'content-type': 'text/html' })
+    res.write('<h1>about page</h1>')
+    res.end()
+  }
+  // 404
+  else {
+    res.writeHead(404, { 'content-type': 'text/html' })
+    res.write('<h1>page not found</h1>')
+    res.end()
+  }
+})
+
+server.listen(5000)
+
+2. http-app.js
+         - Instead of setting the contents, if we want any files to be invoked and to implement css, logo and logic using js for the same html files
+
+const http = require('http')
+const { readFileSync } = require('fs')
+
+// get all files
+const homePage = readFileSync('./navbar-app/index.html')
+const homeStyles = readFileSync('./navbar-app/styles.css')
+const homeImage = readFileSync('./navbar-app/logo.svg')
+const homeLogic = readFileSync('./navbar-app/browser-app.js')
+
+const server = http.createServer((req, res) => {
+  // console.log(req.method)
+  const url = req.url
+  console.log(url)
+  // home page
+  if (url === '/') {
+    res.writeHead(200, { 'content-type': 'text/html' })
+    res.write(homePage)
+    res.end()
+  }
+  // about page
+  else if (url === '/about') {
+    res.writeHead(200, { 'content-type': 'text/html' })
+    res.write('<h1>about page</h1>')
+    res.end()
+  }
+  // styles
+  else if (url === '/styles.css') {
+    res.writeHead(200, { 'content-type': 'text/css' })
+    res.write(homeStyles)
+    res.end()
+  }
+  // image/logo
+  else if (url === '/logo.svg') {
+    res.writeHead(200, { 'content-type': 'image/svg+xml' })
+    res.write(homeImage)
+    res.end()
+  }
+  // logic
+  else if (url === '/browser-app.js') {
+    res.writeHead(200, { 'content-type': 'text/javascript' })
+    res.write(homeLogic)
+    res.end()
+  }
+  // 404
+  else {
+    res.writeHead(404, { 'content-type': 'text/html' })
+    res.write('<h1>page not found</h1>')
+    res.end()
+  }
+})
+
+server.listen(5000)
+
+
+Express JS
+    - It is minimal and flexible nodejs web app framework  designed to make developing websites or webapps or apis much faster and easier 
+    - Express is a server side or back end framework, it can be used in combination with those frameworks to build full stack appl. Many times we build out API with Express so that it takes requests from the front end and then it serves back data usually in JSON format 
+    - We can also render views with express using either just plain HTML or using template engine like Handlebars or Pug
+
+>npm install express@4.17.1 --save
+
+Basic Server syntax:
+const express = require("express");
+//Initialize express
+const app=express();
+
+//create ur endpoints
+app.get("/", function(req,res) {
+     res.send("Hello");
+}
+
+//listen on port
+app.listen(5000);
+
+   - So within the route u can fetch data from database like MongoDB, Postgress, MySQL etc where u can load pages, return JSON data, full access to request and response object. The request object represents the HTTP request properties like URL parameters, query strings, data send within body, HTTP headers 
+   - Response object represents HTTP response and used to send back ur JSON date and render a template
+   - We dont want to put all files in one file, Express has router so we can store routes in separate files and export it 
+
+
+Express Middlewares
+   - Middleware functions are functions that have access to request and response object. Express has built in middleware as well as comes form 3rd party packages.
+   - Execute any code
+   - Make changes to the request and response
+   - End response cycle
+   - Call next middleware in the stack
+
+    
+3.express-basic.js
+     - It is very less code than using builtin http module
+
+const express = require('express')
+const app = express()
+
+app.get('/', (req, res) => {
+  console.log('user hit the resource')
+  res.status(200).send('Home Page')
+})
+
+app.get('/about', (req, res) => {
+  res.status(200).send('About Page')
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('<h1>resource not found</h1>')
+})
+
+app.listen(5000, () => {
+  console.log('server is listening on port 5000...')
+})
+
+// app.get
+// app.post
+// app.put
+// app.delete
+// app.all - it works with all of them mainly used to display error pages
+// app.use - responsible for middleware 
+// app.listen
+
+
+4. express-app.js
+      - When we give get request we need to send back "index.html" for that we use sendFile() comes with express. We need to provide absolute path so we need to use "path" module with path.resolve()
+        
+const express = require('express')
+const path = require('path')
+
+const app = express()
+
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, './navbar-app/index.html'))
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('resource not found')
+})
+
+app.listen(5000, () => {
+  console.log('server is listening on port 5000....')
+})
+
+>npm start and run localhost:5000/ again we get index.html without any css, logos etc
+
+   So in express we can define use() and point to folder called public or navbar-app also. Now copy css,logo and js file into public folder
+
+const express = require('express')
+const path = require('path')
+
+const app = express()
+
+// setup static and middleware
+app.use(express.static('./public'))
+
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, './navbar-app/index.html'))
+})
+
+app.all('*', (req, res) => {
+  res.status(404).send('resource not found')
+})
+
+app.listen(5000, () => {
+  console.log('server is listening on port 5000....')
+}) 
+
+
+>npm start and run localhost:5000/ again we get complete index.html with all css, logos etc
+
+So any static asset where the server dosent need to change it, we place it in folder like public or static, so express will take care of them, it will set up path, mime types, status code 
+  
+5. all-static.js
+       - Here even index.html is consider as static asset, so even we can move it inside public folder. So inder.html is always going to be root so when user hits the server, by default server will serve index.html
+
+const express = require('express')
+const path = require('path')
+
+const app = express()
+
+// setup static and middleware
+app.use(express.static('./public'))
+
+app.all('*', (req, res) => {
+  res.status(404).send('resource not found')
+})
+
+app.listen(5000, () => {
+  console.log('server is listening on port 5000....')
+})
+
+>npm start and run localhost:5000/ again we get complete index.html with all css, logos etc
+
+
+Express JS - API vs SSR
+     When it comes to express we use to set up API or templates with Server Side Rendering
+     In express or http case when we talk about api, we mean setting up an HTTP interface to interact with our data, now data is sent using json and in order to send back our response we use res.json() which sets proper content type and stringify our data 
+     Next we have Server Side Rendering where we will setup templates and send back entire html,css,js using res.render()
+
+API                                       SSR
+1. API - JSON                      1. SSR - Template
+2. Send data                       2. Send template
+3. res.json()                      3. res.render()
+
+
+6. basic-json.js
+
+const express = require('express')
+const app = express()
+app.get('/', (req, res) => {
+  res.json([{name:'john'},{name:'Jim'}])
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+Now it will fecth all info as json when we run localhost:5000/
+
+data.js
+const products = [
+  {
+    id: 1,
+    name: 'albany sofa',
+    image:
+      'https://dl.airtable.com/.attachments/6ac7f7b55d505057317534722e5a9f03/9183491e/product-3.jpg',
+    price: 39.95,
+    desc: `I'm baby direct trade farm-to-table hell of, YOLO readymade raw denim venmo whatever organic gluten-free kitsch schlitz irony af flexitarian.`,
+  },
+  {
+    id: 2,
+    name: 'entertainment center',
+    image:
+      'https://dl.airtable.com/.attachments/da5e17fd71f50578d525dd5f596e407e/d5e88ac8/product-2.jpg',
+    price: 29.98,
+    desc: `I'm baby direct trade farm-to-table hell of, YOLO readymade raw denim venmo whatever organic gluten-free kitsch schlitz irony af flexitarian.`,
+  },
+  {
+    id: 3,
+    name: 'albany sectional',
+    image:
+      'https://dl.airtable.com/.attachments/05ecddf7ac8d581ecc3f7922415e7907/a4242abc/product-1.jpeg',
+    price: 10.99,
+    desc: `I'm baby direct trade farm-to-table hell of, YOLO readymade raw denim venmo whatever organic gluten-free kitsch schlitz irony af flexitarian.`,
+  },
+  {
+    id: 4,
+    name: 'leather sofa',
+    image:
+      'https://dl.airtable.com/.attachments/3245c726ee77d73702ba8c3310639727/f000842b/product-5.jpg',
+    price: 9.99,
+    desc: `I'm baby direct trade farm-to-table hell of, YOLO readymade raw denim venmo whatever organic gluten-free kitsch schlitz irony af flexitarian.`,
+  },
+]
+module.exports = { products }
+
+We have data.js is simple file with some array of products and peoples, then exports those arrays
+
+const express = require('express')
+const app = express()
+app.get('/', (req, res) => {
+  res.json(products)
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+
+7.params-query.js
+
+const express = require('express')
+const app = express()
+const { products } = require('./data')
+
+app.get('/', (req, res) => {
+  res.send('<h1> Home Page</h1><a href="/api/products">Products</a>')
+})
+app.get('/api/products', (req, res) => {
+  const newProducts = products.map((product) => {
+    const { id, name, image } = product
+    return { id, name, image }
+  })
+
+  res.json(newProducts)
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+When we click "Products" link, it has to fetch all products from data.js file. Here when we requesting bunch of data we are not always returning everything for one specific product, so we want to send back some minimal response.
+   So here we iterate over product using map() and remove the description from product array 
+
+To fetch single product based on id:
+
+app.get('/api/products/:productID', (req, res) => {
+  // console.log(req)
+  // console.log(req.params) //returns all parameters 
+  const { productID } = req.params
+
+//route parameter will always return as string
+  const singleProduct = products.find(
+    (product) => product.id === Number(productID)
+  )
+  if (!singleProduct) {
+    return res.status(404).send('Product Does Not Exist')
+  }
+
+  return res.json(singleProduct)
+})
+
+So when we use route parameters think of them as placeholders where user provides data and using req and req.params we can access that data 
+
+Search and Sort the data:
+   Whatever we are passing as query parameter we can get using req.query
+
+app.get('/api/v1/query', (req, res) => {
+  // console.log(req.query)
+  const { search, limit } = req.query //storing query parameter in search and limit variable
+  let sortedProducts = [...products]  //imported the product and assigned
+
+//retrieve the data based on search value
+  if (search) {
+    sortedProducts = sortedProducts.filter((product) => {
+      return product.name.startsWith(search)
+    })
+  }
+
+//limit the values
+  if (limit) {
+    sortedProducts = sortedProducts.slice(0, Number(limit))
+  }
+
+//If search criteria dosent match, then we are not sending 404 error status, instead we send the product dosent match or we can send json object with success key and empty array as value
+  if (sortedProducts.length < 1) {
+    // res.status(200).send('no products matched your search');
+    return res.status(200).json({ success: true, data: [] })
+  }
+  res.status(200).json(sortedProducts)
+})
+
+Run as localhost:5000/api/v1/query?search=a&limit=2
+    Now we filter the products starts with "a" and printing only 2 values
+
+
+Middleware in ExpressJS
+     - Middleware are functions that execute during the request to the server. Each middleware function has access to request and response objects 
+
+1. middleware-basic.js
+     - Middleware sits inbetween request and response
+     - we have "/" and "/about" routes, we just want to log the method that the user is using the url. So if we go with logger and setup that functionality in home page we also have to do that in about page also.
+     - Each time when we run localhost:5000/, it will print method, url and time. But the problem is if we need same functionality in "about" route then we have to paste the same code in all route 
+
+const express = require('express')
+const app = express()
+
+app.get('/', logger, (req, res) => {
+  const method=req.method
+  const url=req.url
+  const time=new Date().getFullYear()
+  console.log(method,url,time)
+  res.send('Home')
+})
+app.get('/about', logger, (req, res) => {
+  res.send('About')
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+The better solution is if we setup function and in that function we have all this logic and then we can attach it to all routes. So in between the route and callback functon we can define the middleware and express will pass req, res and next to middleware function 
+   - When we work with middleware then u must pass it on to a next middleware unless u r terminating the whole cycle by sending back the response using next()
+
+const express = require('express')
+const app = express()
+
+//  req => middleware => res
+
+const logger = (req, res, next) => {
+  const method = req.method
+  const url = req.url
+  const time = new Date().getFullYear()
+  console.log(method, url, time)
+  next()
+}
+
+app.get('/', logger, (req, res) => {
+  res.send('Home')
+})
+app.get('/about', logger, (req, res) => {
+  res.send('About')
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+2. Instead of defining logger middleware in js prg, we can define logger function separately 
+   If we have 50 routes, instead of adding logger middleware in each route manually, so we can have a method that could adds middleware function to add any route 
+
+- Create logger.js and export it 
+
+const logger = (req, res, next) => {
+  const method = req.method
+  const url = req.url
+  const time = new Date().getFullYear()
+  console.log(method, url, time)
+  next()
+}
+module.exports=logger
+
+2. Create authorize.js and export it
+
+const authorize = (req,res,next) => {
+      console.log("authorize")
+      next()
+}
+module.exports=authorize
+
+
+3. express-app.js
+       - import the logger so that we can access the middleware from outside
+       - Instead of defining the middleware manually in each route, we can use app.use() to define the middleware in all route
+       - Here order also matters, where we define app.use() below what routes are there it will be applicable to those routes only
+       - If u need to apply the middleware only to particular routes we can give as 
+           app.use("/api",logger)
+       - To access multiple middleware we can simply use an array and they will be executed in the order of placing in array  
+
+const express = require('express')
+const app = express()
+const logger = require('./logger')
+const authorize = require('./authorize')
+//  req => middleware => res
+app.use([logger, authorize])
+// api/home/about/products
+app.get('/', (req, res) => {
+  res.send('Home')
+})
+app.get('/about', (req, res) => {
+  res.send('About')
+})
+app.get('/api/products', (req, res) => {
+  res.send('Products')
+})
+app.get('/api/items', (req, res) => {
+  console.log(req.user)
+  res.send('Items')
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+
+3. Now to authorize the user using query string 
+          If user provides a query string in url then we will send back the resource that the user is requesting and if user dosent provide the query string then we send 401 error
+          Even we can access certain properties from middleware to any routes
+
+authorize.js
+
+const authorize = (req,res,next) => {
+      const { user } = req.query
+      if(user === 'john') {
+          req.user={ name: 'john', id: 3}
+          next()
+      } else  {
+          res.status(401).send('Unauthorized')
+      }
+}
+module.exports=authorize
+
+middlware-options.js
+
+const express = require('express')
+const app = express()
+
+const logger = require('./logger')
+const authorize = require('./authorize')
+
+app.use([logger, authorize])
+
+app.get('/api/items', (req, res) => {
+  console.log(req.user)
+  res.send('Items')
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+Now run as localhost:5000/api/items?user=john, it will print the values from authorized middleware
+    If we run localhost:5000/ without query string it will print as Unauthorized
+
+
+4. Express is used 
+      - to access our own middleware like logger, authorize etc
+        app.use([logger, authorize])
+      - Express also provides with inbuilt middleware called static where it is use to access static files in public folder
+        app.use(express.static('./public'))
+      - Express also provides to access 3rd party middleware
+      - We have to install 3rd party middleware like morgan. 
+            >npm in morgan
+and use into the program
+      - Here we use only morgan for all routes 
+
+middleware-options.js
+
+const express = require('express')
+const app = express()
+const morgan = require('morgan')
+
+app.use(morgan('tiny'))
+
+app.get('/', (req, res) => {
+  res.send('Home')
+})
+app.get('/about', (req, res) => {
+  res.send('About')
+})
+app.get('/api/products', (req, res) => {
+  res.send('Products')
+})
+app.get('/api/items', (req, res) => {
+  console.log(req.user)
+  res.send('Items')
+})
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+So when we run any request it will provide the total ms to execute that request 
+
+
+GET Http methods
+
+const express = require('express')
+const app = express()
+let { people } = require('./data')
+
+app.get('/api/people', (req, res) => {
+  res.status(200).json({ success: true, data: people })
+})
+
+Run localhost:5000/api/people - it will display all peoples in json format
+
+POST http method - to insert data 
+
+1. create methods-public with all html forms and css files
+
+const express = require('express')
+const app = express()
+let { people } = require('./data')
+
+// static assets
+app.use(express.static('./methods-public'))
+// to access form data we have express middleware urlencoded and using req.body we can access form body 
+app.use(express.urlencoded({ extended: false }))
+
+app.post('/login', (req, res) => {
+  const { name } = req.body
+  if (name) {
+    return res.status(200).send(`Welcome ${name}`)
+  }
+
+  res.status(401).send('Please Provide Credentials')
+})
+
+Run localhost:5000/index.html, it will provide with form and click submit means it call "/login" and prints name if not it provide 401 message 
+
+
+Express Router
+     If we have more routes and more functionality then app.js will become more busy, so we can use express router where we can grouo those routes together and then as far as the functionality will set them as separate controllers 
+
+router-app.js - configures all routes
+
+const express = require('express')
+const app = express()
+
+const people = require('./routes/people')
+const auth = require('./routes/auth')
+
+// static assets
+app.use(express.static('./methods-public'))
+// parse form data
+app.use(express.urlencoded({ extended: false }))
+// parse json
+app.use(express.json())
+
+app.use('/api/people', people)
+app.use('/login', auth)
+
+app.listen(5000, () => {
+  console.log('Server is listening on port 5000....')
+})
+
+router-people.js - configure all routing for people
+
+const express = require('express')
+const router = express.Router()
+
+const {
+  getPeople,
+  createPerson,
+  createPersonPostman,
+  updatePerson,
+  deletePerson,
+} = require('../controllers/people')
+
+// router.get('/', getPeople)
+// router.post('/', createPerson)
+// router.post('/postman', createPersonPostman)
+// router.put('/:id', updatePerson)
+// router.delete('/:id', deletePerson)
+
+router.route('/').get(getPeople).post(createPerson)
+router.route('/postman').post(createPersonPostman)
+router.route('/:id').put(updatePerson).delete(deletePerson)
+
+module.exports = router
+
+router-auth.js - For login purpose
+
+const express = require('express')
+const router = express.Router()
+
+router.post('/', (req, res) => {
+  const { name } = req.body
+  if (name) {
+    return res.status(200).send(`Welcome ${name}`)
+  }
+
+  res.status(401).send('Please Provide Credentials')
+})
+
+module.exports = router
+
+router-controller.js - all logic for routes
+
+let { people } = require('../data')
+
+const getPeople = (req, res) => {
+  res.status(200).json({ success: true, data: people })
+}
+
+const createPerson = (req, res) => {
+  const { name } = req.body
+  if (!name) {
+    return res
+      .status(400)
+      .json({ success: false, msg: 'please provide name value' })
+  }
+  res.status(201).send({ success: true, person: name })
+}
+
+const createPersonPostman = (req, res) => {
+  const { name } = req.body
+  if (!name) {
+    return res
+      .status(400)
+      .json({ success: false, msg: 'please provide name value' })
+  }
+  res.status(201).send({ success: true, data: [...people, name] })
+}
+
+const updatePerson = (req, res) => {
+  const { id } = req.params
+  const { name } = req.body
+
+  const person = people.find((person) => person.id === Number(id))
+
+  if (!person) {
+    return res
+      .status(404)
+      .json({ success: false, msg: `no person with id ${id}` })
+  }
+  const newPeople = people.map((person) => {
+    if (person.id === Number(id)) {
+      person.name = name
+    }
+    return person
+  })
+  res.status(200).json({ success: true, data: newPeople })
+}
+
+const deletePerson = (req, res) => {
+  const person = people.find((person) => person.id === Number(req.params.id))
+  if (!person) {
+    return res
+      .status(404)
+      .json({ success: false, msg: `no person with id ${req.params.id}` })
+  }
+  const newPeople = people.filter(
+    (person) => person.id !== Number(req.params.id)
+  )
+  return res.status(200).json({ success: true, data: newPeople })
+}
+
+module.exports = {
+  getPeople,
+  createPerson,
+  createPersonPostman,
+  updatePerson,
+  deletePerson,
+}
+
+
+Express Project 
+1. Create Express1 folder
+
+2. Create package.json - >npm init -y
+
+3. Install express - >npm i express
+
+4. Create index.js
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) =>
+  res.send("<h1>Hello world</h1>");
+);
+
+const PORT = process.env.PORT || 5000; //when we deploy it wont run on 5000, it will have port no in env variable, so we heck that first if not available it will execute in 5000
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+>node index.js and run localhost:5000/
+
+5. Eachtime we dont want to restart the server when we make change so we install Nodemon
+   >npm i nodemon --save-dev
+
+6. In package.json configure it 
+
+"scripts" : {
+    "start": "node index.js",
+    "dev" : "nodemon index.js"
+}
+
+>npm run dev
+
+7. Now bring path module to deal with file paths in index.js. Now we load html file using sendFile() and we use path.join() and get current dir using __dirname and goto folder called "public" and load "index.html" 
+
+const express = require('express');
+const path = require('path');
+const app = express();
+
+app.get('/', (req, res) =>
+  res.sendFile(path.join(__dirname,'public','index.html'));
+);
+
+const PORT = process.env.PORT || 5000; 
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+8. Create "public" folder and create "index.html"
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>My Website</title>
+  </head>
+  <body>
+    <h1>My Website</h1>
+  </body>
+</html>
+
+run localhost:5000/ it will print "My Website"
+
+9. If we want just static server that serves just HTML, CSS, images etc, then Express actually comes with middleware called "express.static()"
+
+const express = require('express');
+const path = require('path');
+const app = express();
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+const PORT = process.env.PORT || 5000; 
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+run localhost:5000/ it will print "My Website"
+
+10. Create Members.js
+
+const members = [
+  {
+    id: 1,
+    name: 'John Doe',
+    email: 'john@gmail.com',
+    status: 'active'
+  },
+  {
+    id: 2,
+    name: 'Bob Williams',
+    email: 'bob@gmail.com',
+    status: 'inactive'
+  },
+  {
+    id: 3,
+    name: 'Shannon Jackson',
+    email: 'shannon@gmail.com',
+    status: 'active'
+  }
+];
+module.exports = members;
+
+11. Now we create route "/api/members" which returns members object as json format in index.js
+
+const express = require('express');
+const path = require('path');
+const app = express();
+const members = require('./Members');
+
+app.get('/api/members', (req,res) => {
+    res.json(members);
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+const PORT = process.env.PORT || 5000; 
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+run localhost:5000/api/members in postman it will print members in json format
+
+12. Create a logging middleware in logger.js inside middleware folder which prints complete url and also datetime formatted, for that we use 3rd party middleware called "moment" which deal with date formatting
+    >npm install moment
+
+const moment = require('moment');
+
+const logger=(req,res,next) => {
+    console.log(
+    `${req.protocol}://${req.get('host')}${
+      req.originalUrl
+    }: ${moment().format()}`
+  );
+    next();
+};
+
+module.exports=logger
+
+13. In index.js use
+
+const logger = require('./middleware/logger');
+app.use(logger);
+
+run localhost:5000/api/members in postman it will print members in json format and look console we can see url with formatted date will be printed for each request 
+
+14. Now we create route to get single member based on id
+
+app.get('/api/members/:id', (req,res) => {
+   const found=members.some(member => member.is === parseInt(req.params.id)); //some() checks condition and return struw or false
+   
+   if(found) {
+      res.json(members.filter(member => member.is === parseInt(req.params.id)));
+   } else {
+       res.status(400).json({msg: `No member with id of ${req.params.id}` });
+   }
+});
+
+Run localhost:5000/api/members/1, it will print member with id=1, and if no id is there it will print the "No member with id of 6"
+
+15. Having all routes in index.js file is messy so we use router that comes with Express to put all of our routes in single file.
+    Create folder "routes/api" and inside create members.js and copy both the routes inside this file
+
+const express = require('express');
+const router = express.Router();
+const members = require('../../Members');
+
+router.get('/api/members', (req,res) => {
+    res.json(members);
+});
+
+router.get('/api/members/:id', (req,res) => {
+   const found=members.some(member => member.is === parseInt(req.params.id));
+
+   if(found) {
+      res.json(members.filter(member => member.is === parseInt(req.params.id)));
+   } else {
+       res.status(400).json({msg: `No member with id of ${req.params.id}` });
+   }
+});
+
+module.exports=router;
+
+16. In order to work, we go to index.js
+
+const express = require('express');
+const path = require('path');
+const logger = require('./middleware/logger');
+const app = express();
+
+app.use(logger);
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/api/members', require('./routes/api/members'));
+
+const PORT = process.env.PORT || 5000; 
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+
+17. Since we gave "/api/members" in index.js, there is no need to provide in members.js
+
+const express = require('express');
+const router = express.Router();
+const members = require('../../Members');
+
+router.get('/', (req,res) => {
+    res.json(members);
+});
+
+router.get('/:id', (req,res) => {
+   const found=members.some(member => member.is === parseInt(req.params.id));
+
+   if(found) {
+      res.json(members.filter(member => member.is === parseInt(req.params.id)));
+   } else {
+       res.status(400).json({msg: `No member with id of ${req.params.id}` });
+   }
+});
+
+module.exports=router;
+
+Run localhost:5000/api/members/1, it will print member with id=1, and if no id is there it will print the "No member with id of 6"
+
+18. Now we create new member using post request, for that we need to install body parser package but in newest version of express, it is included in express we just have to initialize in index.js 
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+19. To dealing with id in each member object, we create some random id using uuid
+   >npm install uuid
+
+20. In members.js, we import it using and we generate randomid using v4() 
+
+const uuid = require('uuid');
+
+router.post('/', (req, res) => {
+  const newMember = {
+    id: uuid.v4(),
+    name: req.body.name,
+    email:req.body.email.
+    status: 'active'
+  };
+
+  if (!newMember.name || !newMember.email) {
+    return res.status(400).json({ msg: 'Please include a name and email' });
+  }
+
+  members.push(newMember);
+  res.json(members);
+});
+
+Run localhost:5000/api/members in Post request - Body - raw -Json
+
+{
+   "name":"Ram",
+   "email":"ram@gmail.com"
+}
+
+It will return all members in json format 
+
+21. In members.js, next we update the member based on id
+
+router.put('/:id', (req,res) => {
+    const found=members.some(member => member.is === parseInt(req.params.id));
+
+  if(found) {
+    const updMember=req.body;
+    members.forEach(member => {
+       if(member.id === parseInt(req.params.id)) {
+          member.name=updMember.name ? updMember.name : member.name;
+          member.email=updMember.email ? updMember.email : member.email;
+          res.json({ msg: 'Member Updated',member});
+     }
+});
+ } else {
+     res.status(400).json({ msg:`No member with the id of ${req.params.id}` });
+}
+});
+
+Run localhost:5000/api/members/1 in Put request - Body - raw -Json
+
+{
+   "email":"ram@gmail.com"
+}
+
+It will return all members in json format with updated data for id=1
+
+22. In members.js, we need to delete the member based on id
+
+router.delete('/:id', (req,res) => {
+   const found=members.some(member => member.is === parseInt(req.params.id));
+
+   if(found) {
+      res.json({
+         msg: 'Member deleted',
+         members:members.filter(member => member.is === parseInt(req.params.id))
+    });
+   } else {
+       res.status(400).json({msg: `No member with id of ${req.params.id}` });
+   }
+});
+
+Run localhost:5000/api/members/1 in DELETE request, it will delete member with id=1 and displays other members 
+
+23. Now we move to rendering template using template engines called handlebars
+   >npm install express-handlebars
+
+In index.js,we configure 
+
+const exphbs = require('express-handlebars');
+
+To use handlebars we need to add middlewares
+
+app.engine('handlebars', exphbs({ defaultLayout:'main'}));
+app.set('view engine', 'handlebars');
+
+24. Create views folder inside it main.handlebars and index.handlebars
+
+https://github.com/bradtraversy/express_crash_course/tree/master/views
+
+25. In order to render this page for "/" route 
+
+app.get('/', (req, res) =>
+  res.render('index', {
+    title: 'Member App',
+    members
+  })
+);
+
+
+Node Programs: https://github.com/bradtraversy/node_crash_course/blob/master/person.js
+
+1. Create person.js 
+
+const person = {
+      name: 'John',
+      age: 30
+}
+
+mode.exports=person
+
+2. Create index.js
+
+const person=require('./person');
+
+console.log(person);
+console.log(person.name);
+
+>node index
+
+3. We can create as class also, so in Person.js
+
+class Person {
+  constructor(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  greeting() {
+    console.log(`My name is ${this.name} and I am ${this.age}`);
+  }
+}
+
+module.exports = Person;
+
+This file is just getting run directly like this but actually when u include a module like this, it is wrapped in module called wrapper function 
+   
+// Module Wrapper Function
+function (exports, require, module, __filename, __dirname) {
+
+}
+
+4. In index.js 
+
+const person=require('./person');
+const person1=new Person('John',35);
+person1.greeting();
+
+>node index
+
+Path module
+    The path module provides utilities for working with file and directory paths.
+
+path_demo.js
+
+const path = require('path');
+
+// Base file name
+console.log(path.basename(__filename)); //path_demo.js
+
+// Directory name
+console.log(path.dirname(__filename));
+
+// File extension
+console.log(path.extname(__filename));
+
+// Create path object
+console.log(path.parse(__filename));
+console.log(path.parse(__filename).base);
+
+// Concatenate paths
+console.log(path.join(__dirname, 'test', 'hello.html'));
+
+
+
+// More examples
+
+
+// get the path delimiter base on the current OS Environment
+const platSpec = path.delimiter;
+
+console.log(platSpec);
+
+
+// ge the path format on POSIX : / and Windows : \
+// more info : https://nodejs.org/dist/latest-v11.x/docs/api/path.html#path_path_format_pathobject
+const pathformat = path.format({
+  dir: pathjoin,
+  root: pathjoin,
+  base: pathjoin,
+  name: pathjoin,
+  ext: pathjoin,
+});
+
+console.log(pathformat);
+
+
+// get the parent folder director
+const parentDir = path.dirname(__dirname);
+
+console.log(parentDir);
+
+2. fs_demo.js
+
+const fs = require('fs');
+const path = require('path');
+
+// Create folder
+// fs.mkdir(path.join(__dirname, '/test'), {}, err => {
+//   if (err) throw err;
+//   console.log('Folder created...');
+// });
+
+// Create and write to file
+// fs.writeFile(
+//   path.join(__dirname, '/test', 'hello.txt'),
+//   'Hello World!',
+//   err => {
+//     if (err) throw err;
+//     console.log('File written to...');
+
+//     // File append
+//     fs.appendFile(
+//       path.join(__dirname, '/test', 'hello.txt'),
+//       ' I love Node.js',
+//       err => {
+//         if (err) throw err;
+//         console.log('File written to...');
+//       }
+//     );
+//   }
+// );
+
+// Read file
+// fs.readFile(path.join(__dirname, '/test', 'hello.txt'), 'utf8', (err, data) => {
+//   if (err) throw err;
+//   console.log(data);
+// });
+
+// Rename file
+fs.rename(
+  path.join(__dirname, '/test', 'hello.txt'),
+  path.join(__dirname, '/test', 'helloworld.txt'),
+  err => {
+    if (err) throw err;
+    console.log('File renamed...');
+  }
+);
+
+3. os_demo.js
+
+const os = require('os');
+
+// Platform
+console.log(os.platform());
+
+// CPU Arch
+console.log(os.arch());
+
+// CPU Core Info
+console.log(os.cpus());
+
+// Free memory
+console.log(os.freemem());
+
+// Total memory
+console.log(os.totalmem());
+
+// Home dir
+console.log(os.homedir());
+
+// Uptime
+console.log(os.uptime());
+
+4. url_demo.js
+
+const url = require('url');
+// const URL = require('url').URL;
+/* NOTE: if you are using v6 (LTS), line 1 gives errors,
+*  if you get an error saying, TypeError: URL is not a constructor, 
+*  comment line 1, and uncomment line 2 */
+
+const myUrl = new URL('http://mywebsite.com/hello.html?id=100&status=active');
+
+// Serialized URL
+console.log(myUrl.href);
+console.log(myUrl.toString());
+
+// Host (root domain)
+console.log(myUrl.host);
+
+// Hostname (does not get port)
+console.log(myUrl.hostname);
+
+// Pathname
+console.log(myUrl.pathname);
+
+// Serialized query
+console.log(myUrl.search);
+
+// Params object
+console.log(myUrl.searchParams);
+
+// Add param
+myUrl.searchParams.append('abc', '123');
+console.log(myUrl.searchParams);
+
+// Loop through params
+myUrl.searchParams.forEach((value, name) => console.log(`${name}: ${value}`));
+
+5. Event_demo.js
+
+Much of the Node.js core API is built around an idiomatic asynchronous event-driven architecture in which certain kinds of objects (called "emitters") emit named events that cause Function objects ("listeners") to be called.
+    We can create an event emitter class and then we can emit events and have listeners that listen for those events and then do something when they are fired
+
+const EventEmitter = require('events');
+
+// Create class
+class MyEmitter extends EventEmitter {}
+
+// Init object
+const myEmitter = new MyEmitter();
+
+// Event listener
+myEmitter.on('event', () => console.log('Event Fired!'));
+
+// Init event
+myEmitter.emit('event');
+myEmitter.emit('event');
+myEmitter.emit('event');
+myEmitter.emit('event');
+
+6. Event emitter by creating a logger:
+
+const EventEmitter = require('events');
+const uuid = require('uuid'); //create random id 
+
+class Logger extends EventEmitter {
+  log(msg) {
+    // Call event
+    this.emit('message', { id: uuid.v4(), msg });
+  }
+}
+
+// module.exports = Logger;
+
+const logger = new Logger();
+
+logger.on('message', data => console.log('Called Listener', data));
+
+logger.log('Hello World');
+logger.log('Hi');
+logger.log('Hello');
+
+7. http_demo.js
+
+const http = require('http');
+
+// Create server object
+const server=http
+  .createServer((req, res) => {
+    // Write response
+    res.write('Hello World');
+    res.end();
+  })
+  
+const PORT=process.env.PORT || 5000; //First it will check in env variable if not it will run in 5000
+server.listen(PORT, () => console.log('Server running...'));
+
+
+View Encapsulation in Angular - https://www.youtube.com/watch?v=X-1TBjBx6pc
+
+     In OOPS, Encapsulation simply means hiding data and behaviour from outside world 
+     - Whenever we create a component, for that component we specify the selector, view template and styleurl or styles property to specify some css style for that view template 
+     -So whatever CSS style we specify using styleUrls or styles property, that css style only gets applied to that particular view template and not applied to view template of any other component
+     - View Encapsulation is a concept or behaviour in angular, where component CSS styles are encapsulated into the components view and do not affect the rest of the application 
+     - Now we have 3 components app,comp1,comp2 and each of these 3 components has button element
+     - CSS elements has been applied only to button elt of app component, but comp1 and comp2 are child component of this app component and inside comp1, comp2 also we have button elements but this css style which we have specified on this button elemt has only been applied to the button elt of app component and not to the button elt of comp1 and comp2 and this is called view encapsulation in angular
+     - When we specify css style, the css styles has global scope, css rules applies to the entire document, u cannot apply rules to the part of the document. But in case of angular apps the components coexist with other components, so it is important to ensure that css styles specified in one component does not override the css rules in another component and to achieve this we use view encapsulation 
+      - 3 types of view encapsulation
+1. ViewEncapsulation.Emulated (default)
+         In this angular adds some unique html attributes to the component css style and also to html elements in order to achieve view encapsulation, so for each component there will be unique attribute which will be added to each html element in that component 
+       When we inspect the page, in app component html on each of these html element there is a unique attribute which has been used, but we didnt specify these attributes explicitly, this has been added automatically by angular to each of the html elements of this app component, the value of this attribute is same for each of these elements in app component 
+      If we goto comp1 component we can notice that for each element of the comp1 component another unique attribute has been added and this attrbute value is different from the attribute value of html elements of app component. In comp2 component also on each of the html elements of this comp2 component, a unique attribute has been added and this attribute is different from the attribute of comp1 component as well as app component 
+     When we specified some style for button element in app component.css which has unique attribute, so it has not been applied simply on the button elt, it has been applied on the button elt which has unique attribute which we are seeing for the html elts of app component and using this unique attribute angular achieves view encapsulation in emulated type
+    Now click on app component button, in the down we can see button element style with unique attribute for app component. Now if we change the value of the attribute to different value of attribute used on comp1 component and press enter, then button style will be applied on comp1 component.
+    This is how angular achieves emulated view encapsulation by adding a unique attribute on each element of given component 
+
+2. ViewEncapsulation.None
+      In app.component.ts file under @Component decorator we are specifying encapsulation property as none
+      encapsulation: ViewEncapsulation.None
+     When we use none, no view encapsulation will be used that means whatever css style specified for the button element that will be applied to all the button elemts of child component as well, at this time no unique attributes will be used 
+     Now we can notice that css style will be applied for all buttons and unique attribute is removed from each of these html elements 
+
+3. ViewEncapsulation.Shadowdom 
+      Now we remove css style for button elt from app.component.css and going to add it in styles.css file so it will applied globally which means it will applied to all the components and all the html elts 
+      Now in comp2.component.ts file we add encapsulation property under component decorator 
+      encapsulation: ViewEncapsulation.ShadowDom
+      Here we can notice that css style for the button elt has been applied on app component as well as comp1 component but not on comp2 component because when we use shadowDom view encapsulation property for a component, then that component creates its own dom and broser keeps shadow dom separate from main dom and rendering of shadow dom and main dom happens separately so thats why style of shadow dom stay private and it does not get affected by main dom 
+
+Change Detection
+    - Means updating the DOM whenever data is changed
+    - In default strategy whenever any data is changed, Angular will run change detector to update the DOM
+    - In onPush strategy, Angular will only run change detector only when new reference is passed to @input data 
+
+
+Change Detection Strategy in Angular
+        - It is strategy which angular uses to detect the changes in the dom, so whenever you are rendering in the page that is happening due to change detection strategy. In case of 2way binding if u add ngModel and if u add interpolation of the same variable whichever we added in ngModel, once u change on input field that interpolation value is changing itself, so angular is rendering that one and that is possible due to change detection strategy 
+        - Two change detection strategy - default and onPush
+        - default means it will going to check always, so when any change on ur dom or any change on ur model or any change in the event will going to trigger a change detection default 
+        - onPush means on trigger so you will ask angular, I will going to let you know when to check for any change in dom, so that it will check and render ur dom 
+       Suppose we have parent and in the parent we are changing some values, and parent is not dependent at all with ur childs. Suppose we have parent and they have multiple childs and subchilds like tree of components as we have change detection strategy as default, so whenever we change something in parent ur change detection strategy will be going to run for all ur child components which will affect appl performance, if u r like doing a lot of data operation on any change detection, to solve that problem we have onPush strategy 
+    So whenever we trigger you will just check for change but what angular have implemented is if you have any changes in ur input then it will going to rerun your change detection or any event handler run in that component we are also going to trigger ur change detection. We have change detection reference by using which we can ask angular to run change detection in our particular component 
+
+1. Created 2 component parent and child
+
+2. In app component we call parent component and inside parent component we call child component. It prints
+     Parent works
+     Child works
+
+3. Whenever changes like an event is triggered or a promise or observable then zone.js will trigger the detection strategy 
+    Whenever u change something on ngModel or promise or observable then it will work because angular use default change deduction strategy but if want to use ur own change deduction strategy then we can use onPush. 
+    If we use onPush angular will not detect any observables events or promises that u have to tell angular that we are using observable then u need to change in view
+
+4. In app.component.html we create input field
+
+5. In parent.component.html, we invoke a function called triggerParent() and create in parent.component.ts
+   In child.component.html, we invoke a function called triggerChild() and create in child.component.ts
+   When we run it will print triggerParent and triggerChild, this is way default strategy will be working
+
+6. If we change our ngModel in input field which is 2way binding then also it trigger this method, but we are not using any of parent and child data then also it will trigger this kind of event here, so this is default one, the angular will use default change detection strategy. So whenever we change any ngModel then it will trigger any event which are registered on parent and child 
+    To disable this we use onPush change detection strategy where we tell when you should rerender the view 
+
+7. In parent.component.ts, we use change detection property under @Component decorator 
+    changeDetection:ChangeDetectionStrategy.OnPush
+
+Now if we change any data in input field then it dosent event trigger, it does trigger for first time because we are initiating the class but if we change ngModel it dosent trigger.
+
+8. So inside parent if we use any async call using setTimeout(), so after 2sec we want to print something on view.
+   We declare parentFood as empty array and inside setTimeOut() we initialize value of parentFood as 'test' and after 2sec the value will be changing from empty to 'test'
+
+parentFood : string[] = [];
+
+setTimeout(() => {
+      this.parentFood = ['test'];
+    }, 2000);
+
+So after 2sec parentFood variable will be changed to 'test'
+
+9. Now we print that in parent.component.html as  
+      {{ parentFood }}
+
+But after 2sec it wont print the value, but if u comment changeDetection property then after 2sec it will print the value because default is whenever we change ngModel also going to print this function and also async call will be working in the component because in default angular detect these changes and it will show it in a view
+   But if we use onPush strategy then angular disable that and dosent know any data or any model or any class variable its been changed 
+
+10. So we have to do them manually, for that we inject ChangeDetectorRef in constructor 
+   If we use ChangeDetectorRef and tell when data is loaded we have to change in view then we use markForCheck()
+   
+constructor(private cd: ChangeDetectorRef) { }
+
+ ngOnInit(): void {
+    setTimeout(() => {
+      this.parentFood = ['test'];
+      this.cd.markForCheck();
+    }, 2000);
+  }
+
+When we run and whenever data is changed, it prints test. But it dosent trigger any of event if we change any ngModel 
+
+11. If we disable 
+
+changeDetection:ChangeDetectionStrategy.OnPush   and
+this.cd.markForCheck();
+
+then if we change any model its gonna trying to trigger as well 
+
+12. But if we use ChangeDetectorRef we can use detach(), it is exactly same as change detection strategy onpush, so if we change ngModel and dosent give me setTimeout async call and dosent refresh view 
+
+constructor(private cd: ChangeDetectorRef) {
+    this.cd.detach();
+   }
+
+Now when we run we cant see 'test' and it wont trigger anything if ngModel changes
+
+13. Now we need to change in view so we will tell them using detectChanges()
+
+ngOnInit(): void {
+    setTimeout(() => {
+      this.parentFood = ['test'];
+      //this.cd.markForCheck();
+      this.cd.detectChanges();
+    }, 2000);
+  }
+
+Now when we call detectChanges(), we can see it will print 'test' but when we change anything in ngModel it will not trigger any of event 
+
+14. If we do reattach(), it will reattach the standard version which angular provides. When we use reattach is whenever we get some kind of data like an input data from app.component 
+    Now we check if we have value then we detach, incase no value it will reattach
+
+
+
+
