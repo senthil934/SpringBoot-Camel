@@ -13,8 +13,8 @@ conn sys as sysdba
 grant execute on utl_file to system;
 grant create any directory to system;
 conn system
-sho user
 create or replace directory user_dir as 'C:\Angular\'; 
+conn sys as sysdba
 grant read,write on directory user_dir to system;
 conn system
 select * from dba_directories;
@@ -33,7 +33,7 @@ UTL_FILE Package
     If we want to read data from file and write data to file, oracle provide predefined package called UTL_FILE package, it was introduced from oracle 7.3 version onwards
     This package is used to load data into OS files and also read data from OS files, But SQLLoader also used to retrieve data from flat file into Oracle db, but SQLLoader it works pn both client and server side but utl_file handles only server side files. Using SQLLoader loading data into flat file is impossible but through UTL_File package we can loading data into file and also read data from file 
 
-1. Before writing or reading data from OS file, first we have to create alias directory. Actually PL/SQL program does not directly interact with OS files, if we want to interact with OS files then we must create logical directory, that logica; dir name whenever we specifying in PL/SQL program then automatically through that path OS reference that file only 
+1. Before writing or reading data from OS file, first we have to create alias directory. Actually PL/SQL program does not directly interact with OS files, if we want to interact with OS files then we must create logical directory, that logical dir name whenever we specifying in PL/SQL program then automatically through that path OS reference that file only 
 
 Syntax: Create or replace directory directoryname as 'path';
 
@@ -213,7 +213,7 @@ end;
 sql> declare
         fid utl_file.file_type;
      begin
-        fid:=utl_file.fopen('ABC','test.txt','w');
+        fid:=utl_file.fopen('XYZ','test.txt','w');
         utl_file.put_line(fid,'hello');
         utl_file.put(fid,'world');
         utl_file.putf(fid,'welcome to plsql');
@@ -223,7 +223,7 @@ end;
 -- It will create a file test.txt
 
 sql>begin
-       utl_file.fremove('ABC','test.txt');
+       utl_file.fremove('XYZ','test.txt');
     end;
 /
 -- It will remove the file
@@ -233,7 +233,7 @@ sql>begin
 sql> declare
         fid utl_file.file_type;
      begin
-        fid:=utl_file.fopen('ABC','test.txt','w');
+        fid:=utl_file.fopen('XYZ','test.txt','w');
         utl_file.put_line(fid,'hello');
         utl_file.put(fid,'world');
         utl_file.putf(fid,'welcome to plsql');
@@ -244,7 +244,7 @@ end;
 
 --copy to file with different name
 sql>begin
-       utl_file.frename(src_location=>'ABC',src_filename=>'test.txt',dest_location=>'XYZ',dest_filename=>'test_copy.txt',overwrite=>true);
+       utl_file.frename(src_location=>'XYZ',src_filename=>'test.txt',dest_location=>'ABC',dest_filename=>'test_copy.txt',overwrite=>true);
 end;
 /
 --Now it will move to XYZ (ie)c:Angular as test_copy.txt
@@ -268,7 +268,7 @@ end;
 sql> declare
        fid utl_file.file_type;
      begin
-       fid:=utl_file.fopen('ABC','a.txt','w',max_linesize=>32767);
+       fid:=utl_file.fopen('XYZ','a.txt','w',max_linesize=>32767);
        for indx in 1..10
        loop
           utl_file.put_line(fid,'Line ' || indx || 'contains GUID ' || SYS_GUID());
@@ -283,7 +283,7 @@ sql> declare
        fid utl_file.file_type;
        l_line varchar2(32767);
      begin
-       fid:=utl_file.fopen('ABC','a.txt','r',max_linesize=>32767);
+       fid:=utl_file.fopen('XYZ','a.txt','r',max_linesize=>32767);
        for indx in 1..10
        loop
           utl_file.get_line(fid,l_line);
@@ -321,7 +321,7 @@ sql> desc emp_bfile;
 
 -Inserting data into bfile table using bfilename() which is a function used to insert data into bfile data type with 2 args (ie) name of dir and name of file 
 
-sql> insert into emp_bfile values(1, Bfilename('dir1','abc.txt'));
+sql> insert into emp_bfile values(1, Bfilename('XYZ','abc.txt'));
 //here we are storing abc.txt file in dir1 directory, so db will internally find the path which is associated with this directory from DBA_DIRECTORIES and store the file specified into that particular dir
 //we have manually move file into that dir 
 
@@ -350,9 +350,9 @@ DBMS_LOB BFILE functionality
 
 1. Open and close Bfiles
 sql> declare
-     l_bfile BFILE:=BFILENAME('DIR1','abc.txt');
+     l_bfile BFILE:=BFILENAME('XYZ','a.txt');
      begin
-       DBMS_OUTPUT.PUT_LINE('Exists' \\ DBMS_LOB.fileexists(l_bfile));
+       DBMS_OUTPUT.PUT_LINE('Exists' || DBMS_LOB.fileexists(l_bfile));
        DBMS_OUTPUT.PUT_LINE('Open before open'|| DBMS_LOB.fileisopen(l_bfile));
        DBMS_LOB.fileopen(l_bfile);
        DBMS_OUTPUT.PUT_LINE('Open after open'|| DBMS_LOB.fileisopen(l_bfile));
@@ -542,7 +542,7 @@ Context Area
 
 Types of Cursors
    1. Implicit cursors
-         - Will be automatically created by oracle server everythime when DML stmt is executed
+         - Will be automatically created by oracle server everytime when DML stmt is executed
          - User cannot control the behavior of these cursors 
          - Oracle server creates an implicit cursor for any PLSQL block which executes an SQL stmt,as long as an explicit cursor does not exists for that SQL stmt
 
@@ -561,7 +561,7 @@ sql> declare
           loop
              fetch c1 into v_name;
              exit when c1%NOTFOUND;
-             dbma_coutput.put_line(v_name);
+             dbms_output.put_line(v_name);
              end loop;
             close c1;
 end;
@@ -599,7 +599,7 @@ Syntax:
        end loop;
 
 sql> declare
-         cursor c1 is select fname,lname from emp where eid>200;
+         cursor c1 is select fname,lname from emp where empid>200;
      begin
          for i in c1
            loop
@@ -800,14 +800,14 @@ Syntax:   TYPE type_name IS RECORD(
                field_name1 datatype1, field_name2 datatype2,...);
           recordname type_name;
 
-sql>declare
-      TYPE rv_dept IS RECORD(fname varchar2(20),dname dept.dname%TYPE);
-      var1  rv_dept;
-    begin
-       select fname,dname into var1.fname,var1.dname from employee join dept using deptid where emp_id=100;
-       dbms_output.put_line(var1.fname||' '||var1.dname);
-   end;
-/
+sql> declare
+  2        TYPE rv_dept IS RECORD(fname varchar2(20),dname dept.dname%TYPE);
+  3        var1  rv_dept;
+  4      begin
+  5         select e.fname,d.dname into var1.fname,var1.dname from emp e join dept d on e.deptid=d.deptid and e.empid=100;
+  6         dbms_output.put_line(var1.fname||' '||var1.dname);
+  7     end;
+  8  /
 
 
 Bulk Collect
@@ -815,8 +815,7 @@ Bulk Collect
 
 What is Context Switching?
     - Whenever you write a PL/SQL block and execute it, the PL/SQL runtime engine starts processing it line by line. This engine processes all the PL/SQL stmts by itself, but it passes all the SQL stmts which u coded into PL/SQL block to SQL runtime engine. Those SQL stmts will then get processed separately by the SQL engine, once it is done processing them , sql engine then returns the result back to PL/SQL engine,so that combined result can be produced by latter. This to and fro hopping of control is called context switching
-    So higher the hopping of controls the greater will be the overhead which in turn will degrade the performance 
-
+    So higher the hopping of controls the greater will be the overhead which in turn will degrade the performance
    - Bulk collect clause reduces multiple control hopping by collecting all SQL stmt calls from PL/SQL program and sending them to SQL engine in just one go and vice versa
      It is like instead of taking multiple trips for transferring palyers from their hotel to stadium using cycle just put them all into a bus and take them to the stadium in one single trip
 
@@ -900,18 +899,18 @@ So instead of fetching all the records and exhausting an expensive resource like
 Bulk data processing using FORALL statement
      - FORALL statement reduces context switches which occur during the execution of DML statement in a loop, in other words FORALL is a bulk loop constrcut which executes one DML stmt multiple times at once
      - FORALL stmt reduces context switches by sending execution call of DML from PL/SQL to SQL in batches instead of one at a time 
-
 Syntax:
      FORALL index in bound_clause
-     [SAVE EXCEPTION]
-     DML stmt;
+     [SAVE EXCEPTION] DML stmt;
 
 SAVE EXCEPTION keeps FORALL stmt running even when DML stmt causes an exception 
 DML stmt - need to refernce atleast one collection in its values or where clause. With FORALL stmt we can use only one DML at a time
 bound_clause - controls the value of index as well as decides  the number of iteration of a FORALL stmt - 3types
     1. lower and upper bound - specify starting and ending of consecutive index number of referenced collection, make sure the collection whose index numbers you are referencing here should not be parse
     2. INDICES OF - If ur referencing collection is sparse and dont have consecutive index numbers to specify, using INDICES OF we can specify subscript number of ur sparse collection such as nestedtable or associative array 
-    3. VALUES OF - If we want to use FORALL stmt with very specific individual elements of a particular collection. Using VALUES OF bound clause you can specify group of indices which dont need to be either uniqur or consecutive that a FORALL stmt can loop through 
+    3. VALUES OF - If we want to use FORALL stmt with very specific individual elements of a particular collection. Using VALUES OF bound clause you can specify group of indices which dont need to be either unique or consecutive that a FORALL stmt can loop through 
+
+
 
 FORALL stmt with lower and upper bound clause
        FORALL stmt does same work as bulk collect but in inverse manner (ie) in bulk collect we are fetching data from tables and storing it in collection but in FORALL we fetch data from collection and store it in table
@@ -943,6 +942,9 @@ Two rules while writing FORALL stmt
 
 In above example we have only 1 insert stmt and that stmt referencing the collection my_array through the collection variable col_var in its values clause
     
+
+
+
 FORALL stmt with INDICES OF bound clause
        
 sql>create table tut78(mul_tab number(5));
@@ -1003,15 +1005,13 @@ sql>declare
 
     begin
        -- initialize indexing collection with those index number of source collection whose data we want to fetch and store into table, indexing collection is sparse collection we have  not initialized it in a consecutive manner. We stored 1st record at index 1, 2nd record at index 5 etc
-    Even we can store these records in a sequential manner too, its completely ur choice because number of index where u store the data in ur indexing collection does not matter like 1,5,12,28, the data storing into ur indexing collection matters like 3,7,8,10
-       
+    Even we can store these records in a sequential manner too, its completely ur choice because number of index where u store the data in ur indexing collection does not matter like 1,5,12,28, the data storing into ur indexing collection matters like 3,7,8,10      
       index_col(1) := 3;
       index_col(5) := 7;
       index_col(12) := 8;
       index_col(28) := 10;
 
 --Now we use this collection in our FORALL stmt using VALUES OF bound clause
-
    FORALL idx IN VALUES OF index_col
       insert into tut79 values(source_col(idx));
  end;
@@ -1021,7 +1021,7 @@ After writing the reserved phrase VALUES OF we have specified the collection var
     We use source collection into our DML stmt while we use indexing collection with VALUES OF bound clause. On execution this FORALL stmt will fetch the data from index 3,7,8,10 from the source collection and store it in tut79
        
 Associative Array
-    - Unlike Nested table and varray, associative array hold elemts of similar datatype in key value pairs 
+    - Unlike Nested table and varray, associative array hold elemts of similar datatype in key value pairs, they cannot be reused 
     - It is non persistent, which  means neither the array nor the data can be stored in the database 
     - It is also an unbounded collection which means there is no upper bound 
 
@@ -1200,7 +1200,6 @@ sql> create or replace package pk_sr as
 /
 
 2. Now we initialize the value to variable and execute it 
-
 sql>begin
       pk_non_sr.lv_num := 10;
       dbms_output.put_line(pk_non_sr.lv_num); --10
@@ -1230,5 +1229,508 @@ sql>begin
 /
 
 So when u specify pragma serially_reusable keyword, the variables declared to value only for the block it will be executing not till end of session 
+
+RAISE_APPLICATION_ERROR
+     - Another way of declaring user defined exception 
+and it is inbuilt procedure comes with oracle
+     - Using this procedure you can associate an error number with custom error message. Combining both error number and error message you can compose an error string which looks similar to those default error strings which are displayed by oracle engine when error occurs 
+
+>ACCEPT var_age NUMBER PROMPT 'What is ur age?';
+ DECLARE
+    age number := &var_age;
+ begin
+    if age<18 THEN
+       RAISE_APPLICATION_ERROR(-20008,'Your age shoud greater than 18');
+    end if;
+    dbms_output.put_line('Your age is greater');
+ exception
+    when others then
+        dbms_output.put_line(SQLERRM);
+end;
+/
+
+PRAGMA EXCEPTION_INIT
+    - Also defines user defined exception but here we cannot name the exception 
+    - In PL/SQL we handle all the exceptions which has no name in "others" exception handler and that causes confusion especially when working on a project which is huge and habing multiple user defined exception, we can easily overcome this problem by using PRAGMA EXCEPTION INIT
+    - Using Pragma Exception_Init we can associate an exception name with an oracle error number 
+
+sql>declare
+       ex_age EXCEPTION;
+       age number := 17;
+       PRAGMA EXCEPTION_INIT(ex_age,-20008);
+    begin
+       IF age<18 THEN
+          RAISE_APPLICATION_ERROR(-20008,'Your age shoud greater than 18');
+    end if;
+    dbms_output.put_line('Your age is greater');
+ exception
+    when ex_age then
+        dbms_output.put_line(SQLERRM);
+end;
+/
+          
+
+Performance Tuning
+    First understand how to start with PLSQL tuning because many times the requirements comes like the given procedure is taking more time and you need to start tuning, so the biggest problem of performance tuning that too specifically in plsql is that u cannot start with manual inspection of code because the procedure may call another procedure which in turn may call another one and it can go for n number of PLSQL call and so literally it is not possible for you to go through each and every line of code, to check whether that particular line is taking more time or not 
+    So we discuss where to start with plsql tuning and how to identify the potential bottleneck in plsql code because once u know the place where it is taking time then you can start tuning that particular line. To ease the process of PLSQL performance tuning oracle has provided an inbuilt tool called DBMS_PROFILER 
+
+How to start with PLSQL Performance tuning ?
+     1. Start with the manual inspection of code to check whether a particular line might take more time or not, this will work as far as the number of lines in the plsql code is very less.
+     Suppose if you are tuning one procedure and it is not calling any other plsql unit and if the number of lines in plsql code is very less then this may work, however this may not work if there is too many plsql calls internally 
+   2. Another way is we can put enough log statements to capture the timing of each and every stmt so that by analyzing the log stmt, you can easily identify where exactly the time is going or which particular stmt is taking more time 
+   This also will work if number of lines in plsql code is very less but this is not most efficient way because you need to keep modifying plsql code to check whether a particular line is taking more or not
+   3. Instead of doing all these thing we can use inbuilt tool called DBMS_PROFILER
+
+What is DBMS_PROFILER?
+    - It is a package provided by Oracle to capture the info about the PLSQL code and runtime info like how much time each line is taking and how many number of time a particular stmt is being executed, so these info are captured in separate set of table, so after execution we can analyse this information to find which particular line is taking more time
+
+How to use DBMS_PROFILER?
+    - We need to follow 4 steps exactly in same order
+1. Environment setup
+      - You need to prepare ur env to use DBMS_PROFILER, this is nothing but you need to create few predefined tables prescribed by Oracle to capture the profiler informations
+
+2. Profiler Execution
+     - First step is just one-time setup only, once env setup is done u need to execute the profiler, so the profiler execution is as per our requirement (ie) we can execute any number of times, for example we can execute a profiler execution on a setup with plsql code to capture its information
+
+3. Analyze Profiler data
+     After analyzing the informations you can tune ur particular code, again you can execute the profiler to check whether it has actually improved or not
+    So for every profiler execution it collects some info in plsql tables then you need to analyze the data collector to identify where exactly the time is going 
+    So 2nd and 3rd step is iterative process, you just need to keep running profiler execution and data analysis for each and every subsequent execution of your profiler
+
+4. Optimize the PLSQL
+      The optimization may be an SQL optimization or it may be PLSQL optimization 
+
+1. Environment setup
+      - We need to check whether ur user has the privilege to execute DBMS_PROFILER package or not, by default most of time when we create the user it will have default privilege to access DBMS_PROFILER package, in case if we not able to access this package then login as sys and grant privilege 
+
+sql>conn sys as sysdba
+password: sys
+
+sql>grant dbms_profiler to scott;
+
+    - Create profiler table in the schema where you are going to run the execution, for that we need to run a particular file called oracle/product/10/dbhome_1/rdbms/admin/proftab.sql which is present in oracle installation directory which creates 3 tables called plsql_profiler_data,plsql_profiler_units and plsql_profiler_runs
+   This 3 tables hold the profiler info during ur profiler execution 
+
+SQL> @C:\oraclexe\app\oracle\product\10.2.0\server\RDBMS\ADMIN\proftab.sql - run the sql script to create the tables
+
+SQL> select table_name from user_tables where table_name like '%PROF%';  -- check 3 tables are created
+
+2. Profiler Execution
+      It is 3 step process like
+    - Start the profiler so that from that particular point of time Oracle captures all line by line execution information into profiler table
+      We need to invoke a procedure called "exec dbms_profiler.start_profiler()"
+    - After starting the profiler, u need to execute all PLSQL code where u want to collect performance related informations 
+    - After executing all your plsql block, u need to stop the profiler 
+      We need to invoke a procedure called "exec dbms_profiler.stop_profiler()"
+
+1. We create 3 procedures, when we invoke proc_a it will call proc_b and proc_b will internally call proc_c. So invoking proc_a is taking more time then we need to identify which particular stmt in these 3 procedures are taking more time then you need to stop executing
+
+sql> create or replace procedure proc_c AS
+        lv_avg_sal number;
+     begin
+        for i in 1..50 loop
+           select avg(salary) into lv_avg_sal from employee;
+        end loop;
+     end;
+/
+
+sql>create or replace procedure proc_b as
+        lv_date date;
+    begin
+        for i in 1..50 loop
+            proc_c;
+            select sysdate into lv_date from dual;
+        end loop;
+    end;
+/
+
+sql>create or replace procedure proc_a as 
+       lv_count number;
+    begin
+       select count(*) into lv_count from user_tables,all_objects;
+       for i in 1..50 loop
+           proc_b;
+       end loop;
+end;
+/
+
+2. Now execute start_profiler and will start collecting the profiler informations of the plsql code 
+
+SQL> exec dbms_profiler.start_profiler('MY_TEST_PERFORMANCE_RUN');
+
+Now executing procedure proc_a, since there are like multiple loops we have included in each procedure it take some time 
+SQL> exec proc_a;
+
+Now execute stop_profiler procedure
+SQL> exec dbms_profiler.stop_profiler();
+
+3. Analyze profiler data 
+        When a profiler get executed this captures the informations in 3 different tables called plsql_profiler_runs,plsql_profiler_data,plsql_profiler_units
+    - plsql_profiler_runs will contain information about one row for each execution 
+    - plsql_profiler_units captures the info abt what all the apis or what all the plsql units involved as part of the profiler units like procedures and functions etc
+    - plsql_profiler_data will have the info about line by line details like how much time a particular line is taken in that particular unit and how many times the particular line is being is invoked 
+    All 3 tables have common linkages like runid and unit_number, so using runid for every run there will be one runid generated using that we can join plsql_profiler_runs and plsql_profiler_units tables, same way we can join plsql_profiler_runs and plsql_profiler_data tables, using unit_number we can join plsql_profiler_data and plsql_profiler_units tables. So by joining these 3 tables we can get info about how much time a particular line is taken in particular program unit
+
+SQL> select * from plsql_profiler_runs; -- will have info abt how much time taken for overall execution
+
+SQL> select * from plsql_profiler_data; -- will have info abt what all the units involved like procedures, functions etc 
+
+SQL> select * from plsql_profiler_units; -- will have how many number of times a particular line is being executed and how much total time the particular line has taken 
+
+Now we join the table
+
+sql>select plsql_profiler_runs.run_date,plsql_profiler_runs.run_comment,plsql_profiler_units.unit_type,plsql_profiler_units.unit_name,plsql_profiler_data.LINE#,plsql_profiler_data.total_occur,plsql_profiler_data.total_time,plsql_profiler_data.min_time,plsql_profiler_data.max_time,round(plsql_profiler_data.total_time/1000000000) total_time_in_sec,
+trunc(((plsql_profiler_data.total_time)/(sum(plsql_profiler_data.total_time) over()))*100,2) pct_of_time_taken from
+ plsql_profiler_data,plsql_profiler_runs,plsql_profiler_units
+where plsql_profiler_data.total_time > 0
+and plsql_profiler_data.runid=plsql_profiler_runs.runid
+and plsql_profiler_units.unit_number=plsql_profiler_data.unit_number
+and plsql_profiler_units.runid=plsql_profiler_runs.runid
+order by
+   plsql_profiler_data.total_time DESC;
+
+    Here we can see line no 5 of proc_c takes 125000 times to execute, in this way we can identify which particular line is taking more time, so instead of browsing through the entire lines of code or instead of tuning all plsql code in ur procedure now u can just concentrate on only one line. Again u should concentrate on a line just because it is taking more time, the another thing we need to check is total occurences because sometimes total occurences will be very less whereas the time taken will be very high so those are all the potential lines to start with tuning
+  If we want to delete info from profiler table then we need to follow in this order
+>truncate  table plsql_profiler_data;
+>delete from plsql_profiler_units;
+>delete from plsql_profiler_runs;
+
+4. Optimize the PLSQL
+     - Implement the logic in SQL(instead of PLSQL) as far as possible
+     - Use the inbuilt/analytical functions as mush as possible
+     - Bulk collections - whenever we are working on a collections and if you are using traditional looping to load the data or insert the data instead we use bulk collection which will improve the performance
+     - Wherever u want to store a huge amount of temporary info use global temporary tables instead of putting internal into a variable so that this might improve performance
+     - Instead of writing multiple statements, merge all these stmts into a single stmt wherever is possible
+     - use insert append hint to improve performance 
+     - use lob variables only if needed  
+
+PRAGMA AUTONOMOUS_TRANSACTION
+   - By default Oracle dosent create a separate transaction for procedure, procedure will always part of main program transaction so what happens is commit or rollback command in procedure affects the transaction started in main prg
+    For example we create a procedure which is updating the data and the update is rolledback, usually we wont rollback directly may be using some condition we will rollback (ie) if some condition is true then it commit or else it will rollback 
+    After creating the procedure, the procedure is invoked from plsql block, so in calling prg we have update command and after update we are calling the procedure and then commit is executed
+   So when u submit update or dml command from any plsql block, then oracle starts a separate transaction. So when u submit update command oracle starts a new transaction and after that we are calling procedure, now the control goes to procedure, in procedure also we call update command, but oracle dosent starts separate transaction for procedure because by default procedure is executed as a part of main prg transaction, so update command also have same transaction started in main prg.
+     So when rollback command is executed it cancels the transaction started in main prg, so main prg and procedure updates both are cancelled, so rollback cmd in procedure affects the transaction started in main prg
+    So my requirement is we want separate transaction for procedure so commit or rollback in procedure should affect only transaction started in procedure but should not affect transaction started in main prg, then we create procedure with pragma autonomous then separate transaction is created for procedure 
+
+>create or replace procedure updateSal(e number)
+is
+ begin
+    update employee set salary=salary+1000 where eid=e;
+    rollback;
+end;
+/
+
+>begin
+   update employee set salary=salary+1000 where eid=2;
+   updateSal(1);
+   commit;
+ end;
+/
+
+When we run plsql block it will cancel both transaction so it wont update both salary 
+     
+>create or replace procedure updateSal(e number)
+is
+PRAGMA AUTONOMOUS_TRANSACTION;
+ begin
+    update employee set salary=salary+1000 where eid=e;
+    rollback;
+end;
+/
+
+Now when we run it will update salary only in plsql block not in procedure since it creates a separate transaction
+
+
+Triggers
+    - Named PL/SQL blocks which are stored in the database, it is specialized stored programs which execute implicitly when a triggering event occurs which means we cannot call and execute them directly instead they only get triggered by events in the database 
+    - This events can be anything like
+        1. DML statement 
+        2. DDL statement
+These triggers are generally used by DBA for auditing purposes
+        3. System event - you can create a trigger on a system event (ie) startup and shutdown of ur database 
+        4. User events such as logoff or log on into ur database 
+
+Types of triggers
+1. DML triggers - these are the triggers which depend on DML stmt such as update,insert,delete and they get fired either before or after them 
+2. DDL triggers - these are the triggers which are created over DDL stmt such as create or alter. We can monitor the behavior and force rules on ur DDL stmts.
+   - Using DDL triggers you can track changes to the db (ie) when a schema object such as table, trigger,index or anything is created or altered or dropped
+
+sql>show user;
+
+1. Create a table which this trigger will store all info 
+>create table schema_audit(ddl_date date,ddl_user varchar2(15),object_created varchar2(20),object_name varchar2(20),ddl_operation varchar2(20));
+
+2. Create trigger
+>create or replace trigger hr_audit_td
+after DDL on schema
+begin
+  insert into schema_audit values(sysdate,sys_context('userenv','current_user'),ora_dict_obj_type,ora_dict_obj_name,ora_sysevent);
+end;
+/
+
+sys_context('userenv','current_user') will return current user name. Next 3 attributes are oracle system event attributes which return some info regarding the events that fired the triggers
+ora_dict_obj_type - return type of object on which DDL operation occured (ie) table
+ora_dict_obj_name - return table name of object given by user
+ora_sysevent - which ddl event or ddl stmt was executed such create or alter or truncate 
+
+This trigger will fire after every DDL stmt executed on the system schema. If u want trigger to fire for only create and alter then we can create like
+>create or replace trigger hr_audit_td
+after create or alter on schema
+
+3. Create dummy table to check whether it records this event into schema_audit table
+>create table dummy(r number);
+
+4. Check schema_audit table for audit entry
+>select * from schema_audit 
+
+5. Now we insert some values in dummy table and then truncate and check schema_audit table
+>insert into dummy values(1);
+>truncate table dummy;
+>select * from schema_audit;
+
+
+3. System/Database event triggers - used when some system event occurs such as db log on or log off or shutdown or startup
+    - Used to monitor system event activities of either a specific user or whole database 
+    - To create a trigger on db u must need "Administrative database trigger" system privileges
+
+>create table hr_evnt_audit(event_type varchar2(20),logon_date date,logon_time varchar2(15),logof_date date,logof_time varchar2(15));
+
+>create or replace trigger hr_logon_audit
+after logon on schema
+begin
+   insert into hr_evnt_audit values(ora_sysevent,sysdate,to_char(sysdate,'hh24:mi:ss'),null,null);
+commit;
+end;
+/
+
+>disconnect from db, once agin connect with db
+
+>select * from hr_event_audit;
+
+4. Instead of trigger
+      - Using Instead-of trigger you can control the default behavior of insert,update,delete and merge operation on views but not on tables 
+
+Syntax: create [or replace] trigger trigger_name
+        instead of operation
+        on view_name
+        for each row
+        begin
+           --stmt
+        end;
+/
+
+>create table trainer(full_name varchar2(20));
+>insert into trainer values('Ram');
+>create table subject(subject_name varchar2(20));
+>insert into subject values('oracle');
+
+-Create a view to join both tables
+  >create view v1 as select full_name,subject_name from trainer,subject;
+   - This view is not updatable,
+>insert into v1 values('Raj','Java'); --show error
+
+- But using instead of trigger we can make non updatable view to updatable 
+
+>create or replace trigger tr_io_insert
+instead of insert on v1
+for each row
+begin
+  insert into trainer(tname) values(:new.tname);
+  insert into subject(sname) values(:new.sname);
+end;
+/
+
+>insert into v1 values('Raj','Java'); -- now it will insert new values through views 
+
+INSTEAD OF - UPDATE TRIGGER
+>desc v1;
+
+>update v1 set tname='Raj' where sname='Java'; -- show error as view contains multiple table
+
+>create or replace trigger io_update
+instead of UPDATE on v1
+for each row
+begin
+  update trainer set tname=:new.tname where tname=:old.tname;
+  update subject set sname=:new.sname where sname=:old.sname;
+end;
+/
+
+>update v1 set full_name='Raj' where subject_name='Java'; - now it will update the data
+
+
+5. Compound triggers - multi tasking triggers act as both statement as well as row level triggers when data is inserted, updated or deleted from table. 
+
+CURRENT OF Clause
+    - used in cursor
+    - Suppose we are taking emp table with ename, salary column 
+ename  sal
+A      5000
+B      4000
+A      6000
+B      5000
+C      4000
+
+
+
+
+
+Day 1
+1. Create a type dept_type whose structure is given below: 
+ Column name data type 
+ Deptno number(2) 
+ Dname varchar2(14) 
+ Loc varchar2(13) 
+
+2. Create a table emp which will hold a reference to the above created table and also have a structure as given below: 
+ Column name data type 
+ Empno number(4) 
+ Job varchar2(10) 
+ Mgr number(4) 
+ Hiredate date 
+ Sal number(7,2) 
+ Comm number(7,2) 
+ Dept ref dept_type 
+ 
+3. Write PL/SQL block to insert department details into Department table until the user wishes to  stop.
+
+4. Write PL/SQL block to increase the salary by 10% if the salary is > 2500 and > 3000. 
+
+5. Write PL/SQL block to display the names of those employees getting salary > 3000. 
+
+6. Write a PL/SQL code to retrieve the employee name, join_date, and
+designation from employee database of an employee whose number is
+input by the user. 
+
+SQL> select * from employee; 
+EMP_NO EMPLOYEE_NAME STREET CITY 
+1 rajesh first cross gulbarga 
+2 paramesh second cross bidar 
+3 pushpa ghandhi road banglore 
+4 vijaya shivaji nagar manglore 
+5 keerthi anand sagar street bijapur 
+
+7. Write a PL/SQL procedure to find the number of students ranging from 10070%, 
+69-60%, 59-50% & below 49% in each course from the student_course
+table given by the procedure as parameter. 
+
+SQL> select * from student_enrollment; 
+ROLL_NO COURSE COURSE_COD SEM TOTAL_MARKS PERCENTAGE 
+111 cs 1001 1 300 50 
+112 cs 1001 1 400 66 
+113 is 1002 1 465 77 
+114 is 1002 1 585 97 
+
+Day 2 - Function and Package
+1. Create a store function that accepts 2 numbers and returns the addition
+of passed values. Also write the code to call your function. 
+
+2. Write a PL/SQL function that accepts department number and returns the
+total salary of the department. Also write a function to call the
+function. 
+
+SQL> select * from works; 
+EMP_NO COMPANY_NAME JOINING_D DESIGNATION SALARY DEPTNO 
+1 abc 23-NOV-00 project lead 40000 1 
+2 abc 25-DEC-10 software engg 20000 2 
+3 abc 15-JAN-11 software engg 1900 1 
+4 abc 19-JAN-11 software engg 19000 2 
+5 abc 06-FEB-11 software engg 18000 1 
+
+
+3. Accept year as parameter and write a Function to return the total net salary spent for a given year.
+
+SQL> select * from works; 
+EMP_NO COMPANY_NAME JOINING_D DESIGNATION SALARY DEPTNO 
+1 abc 23-NOV-00 project lead 40000 1 
+2 abc 25-DEC-10 software engg 20000 2 
+3 abc 15-JAN-11 software engg 1900 1 
+4 abc 19-JAN-11 software engg 19000 2 
+5 abc 06-FEB-11 software engg 18000 1 
+
+4. Create a package that contains overloaded functions for
+a. Adding five integers
+b. Subtracting two integers
+c. Multiplying three integers
+
+
+Cursors
+1. Write a PL/SQL code to calculate the total salary of first n records of
+emp table. The value of n is passed to cursor as parameter. 
+
+
+SQL> select * from employee_salary; 
+EMP_NO BASIC HRA DA TOTAL_DEDUCTION NET_SALARY GROSS_SALARY 
+2 15000 4000 1000 5000 15000 20000 
+1 31000 8000 1000 5000 35000 40000 
+3 14000 4000 1000 5000 15000 19000 
+4 14000 4000 1000 5000 15000 19000 
+5 13000 4000 1000 5000 15000 18000 
+6 12000 3000 800 4000 11800 15800 
+
+
+2. Create a PL/SQL block that determines the top n salaries of the
+employees.
+a. Execute the script given below to create a new table, top_salaries, for storing the salaries of the employees.
+CREATE TABLE top_salaries(salary NUMBER(8,2));
+b. Accept a number n from the user where n represents the number of top n earners from the employees table. For example, to view the top five salaries, enter 5.
+Pass the value to the PL/SQL block as an input from user
+c. In the declarative section, declare two variables: num of type NUMBER to accept
+the substitution variable p_num, sal of type employees.salary. Declare a cursor, emp_cursor, that retrieves the salaries of employees in descending order. Remember that the salaries should not be duplicated.
+d. In the executable section, open the loop and fetch top n salaries and insert them into top_salaries table. You can use a simple loop to operate on the data. Also, try and use %ROWCOUNT and %FOUND attributes for the exit condition.
+e. After inserting into the top_salaries table, display the rows with a SELECT statement.
+
+3. Write a program in PL/SQL to display a cursor based detail information of employees from employees table
+
+4. Write PL/SQL block to increase the salary by 15 % for all employees in employee table.
+
+Exception
+1. Write an anonyms block which count total customers into a variable who has bought more than 10,000 Rs. of goods so far. If the count is more than 100 it should display ‘This is a message from body” else it should go to exception and from there is should display ‘This is a message from Exception block.”
+
+2. Write PL/SQL block to handle the exception dup_val_on_index by inserting a duplicate row in the works table.
+
+3. Write PL/SQL block with a user defined exception and raise the exception, and handle the exception. 
+
+
+Trigger
+1. Create a row level trigger for the customers table that would fire for INSERT or UPDATE or DELETE operations performed on the CUSTOMERS table. This trigger will display the salary difference between the old values and new values:
+ CUSTOMERS table:
+ID NAME AGE ADDRESS SALARY
+1 Alive 24 Khammam 2000
+2 Bob 27 Kadappa 3000
+3 Catri 25 Guntur 4000
+4 Dena 28 Hyderabad 5000
+5 Eeshwar 27 Kurnool 6000
+6 Farooq 28 Nellur 7000
+
+2.2. Creation of insert trigger, delete trigger, update trigger practice triggers using the passenger database.
+Passenger( Passport_ id INTEGER PRIMARY KEY, Name VARCHAR (50) Not NULL,
+Age Integer Not NULL, Sex Char, Address VARCHAR (50) Not NULL);
+a. Write a Insert Trigger to check the Passport_id is exactly six digits or not.
+b. Write a trigger on passenger to display messages „1 Record is inserted‟, „1 record is deleted‟, „1
+record is updated‟ when insertion, deletion and updation are done on passenger respectively.
+
+3. Convert employee name into uppercase whenever an employee record is inserted or updated. Trigger
+to fire before the insert or update.
+4. Trigger before deleting a record from emp table. Trigger will insert the row to be deleted into table
+called delete _emp and also record user who has deleted the record and date and time of delete
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
