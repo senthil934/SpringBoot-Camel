@@ -1,5 +1,7 @@
 1. git init  - creates local git repository (private copy of shared repo)
-2. git remote add origin " "
+2. create the token 
+      Goto top username on lefthand corner - settings - Developer settings - Personal Access token - Click Generate new token - Give some note - select all checkbox - Click Generate
+2. git remote add origin https://senthil1418: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@github.com/senthil1418/drupal-project.git
 3. git add .  - add all files to staging area, only files present in staging area used for commit
 4. git commit -m "Initial commit" - move all files frm staging area to local repo
 5. git status - returns the current state of repo
@@ -609,6 +611,7 @@ Working with remote repository
 8. Now we want to make changes in my copy in the directory
      >git pull origin master
 9. ls - now u go and see the new data
+10. Now edit any file in local repo, now we want to push the updation in github
 10. git add .
 11. git commit -m "remote commit"
 12. git push origin master
