@@ -8,6 +8,10 @@
 5. git config --global http.sslVerify "false"
 6. git push -u -f origin master
 
+
+git remote add origin https://senthil934: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@github.com/senthil934/Latest.git
+
+
 create a folder
 1. git init
 2. git pull "git url"
