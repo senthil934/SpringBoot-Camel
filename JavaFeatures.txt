@@ -1910,6 +1910,73 @@ public class Closure {
 
 
 Optional class
+        As we know Java is purely OOPS language which means while coding we all use objects and that object will contain either data or null. If object contains data we can execute our code, but if it contains null then our code will leads to NullPointerException
+       To avoid that we can do null check before accesing any object. If class contains only 2 fields we can do null check for each and every field, but if class contains 100 data then writing 100 null check is not a good practise 
+       To avoid this kind of scenario or to avoid unpredictable NPE, Java 8 introduces Optional class 
+
+
+public class Customer {
+    private int id;
+    private String name;
+    private String email;
+    private List<String> phoneNumbers;
+    //constructor, getters and setters
+}
+
+
+public class OptionalDemo {
+    public static void main(String[] args ){
+
+Customer customer=new Customer(101, "john", "test@gmail.com", Arrays.asList("397937955", "21654725"));
+
+     //To create Optional object, we have empty(), of(), ofNullable()
+
+     Optional<Object> emptyOptional=Optional.empty(); //just creates optional object
+  System.out.println(emptyOptional); //Optional.empty
+
+     //If we know the object we are passing is null then we use Optional.of() because it does null check internally
+     Optional<String> emailOpt=Optional.of(customer.getEmail());
+     System.out.println(emailOpt); //NPE
+
+    //If we know passing object may or may not be null then we use Optional.ofNullable(), it dosent return NPE, internally it check if value is null it returns empty optional object or if value is not null it returns the value itself
+    Optional<String> emailOpt1=Optional.ofNullable(customer.getEmail());
+     System.out.println(emailOpt1); //Optional.empty
+
+    //To print value from Optional object
+    if(emailOptional2.isPresent()){
+            System.out.println(emailOptional2.get());
+        }
+
+   //To print some default value if optional dosent have any value
+    System.out.println(emailOptional2.orElse("default@email.com"));
+
+    //In case if optional value is empty and if we want to throw some custom exception
+    System.out.println(emailOptional2.orElseThrow(()->new IllegalArgumentException("email not present")));
+
+    //Now we want to get value from Optional and change to uppercase, in case if there is no value then return default value using orElseGet()
+     System.out.println(emailOptional2.map(String::toUpperCase).orElseGet(()->"default email..."));
+   //orElse() and orElseGet() method is similar which prints default value but method arg is different 
+  //Provide some value for email instead of null and check the output 
+
+    List<Customer> customers = getAll();
+      Optional o= customers.stream()
+                .filter(customer -> customer.getEmail().equals(email))
+                .findAny().orElseThrow(()->new Exception("no customer present with this email id"));
+     System.out.println(o.get());
+     
+    }
+
+    public static List<Customer> getAll() {
+        return Stream.of(
+                new Customer(101, "john", "john@gmail.com", Arrays.asList("397937955", "21654725")),
+                new Customer(102, "smith", "smith@gmail.com", Arrays.asList("89563865", "2487238947")),
+                new Customer(103, "peter", "peter@gmail.com", Arrays.asList("38946328654", "3286487236")),
+                new Customer(104, "kely", "kely@gmail.com", Arrays.asList("389246829364", "948609467"))
+        ).collect(Collectors.toList());
+    }
+}
+
+
 
 public class MyOptional {
 
@@ -6285,3 +6352,202 @@ ConcurrentHashMap is similar to Hashmap but it is synchronized and use it in mul
 
 2. ConcurrentMap that also sort the elements which is equivalent to TreeMap and TreeMap is an non concurrent implementation of Map but it sort the values based on keys in specific order that was natural order of objects given by Comparable or Comparator interface.
         
+
+Deque interface:
+    - Deque interface extends Queue interface and Queue extends Collection interface 
+
+public class Example1 {
+
+    public static void main(String[] args) {
+//Deque interface has only 1 implementation called ArrayDeque
+        Deque<Integer> d1 = new ArrayDeque<>();
+        var d2 = new ArrayDeque<>();
+        ArrayDeque<Integer> d3 = new ArrayDeque<>();
+
+        // stacks and queues
+
+        // adding an element at the beginning
+        // adding and element at the end
+        // retrieve an element from the beginning
+        // retrieve an element from the end
+
+        // stack ... LIFO
+        // stacks have layers
+
+//        d1.push(3);
+//        d1.push(8);
+//        d1.push(9);
+//        Integer e1 = d1.pop();
+
+//        d1.addFirst(3);
+//        d1.addFirst(8);
+//        d1.addFirst(9);
+//        d1.removeFirst();
+        // 9 8 3
+
+//        d1.addLast(10);
+//        d1.addLast(78);
+//        d1.addLast(50);
+
+//        d1.offer(10);
+//        d1.offer(78);
+//        d1.offer(50);
+
+        // 10 78 50
+        System.out.println(d1); // any collection in the collections fw implements a toStirng()
+//        d1.forEach(System.out::println);
+    }
+}
+
+
+map() and flatMap()
+    - map() used for data transformation
+    - flatMap() used for data transformation and flattening of data
+           flatMap()=map()+flattening
+      It takes stream of stream as input and convert stream of stream into single stream which is called flattening of data and returns an another stream 
+
+Data transformation - Transform data from lowercase to uppercase
+    Stream.of("a","b","c","d") - [A,B,C,D]
+
+Flattering - convert stream of stream into single stream
+   [[1,2],[3,4],[5,6]] - [1,2,3,4,5,6]
+
+map()	
+1. It processes stream of values.
+2. It does only mapping.
+3. It’s mapper function produces single value for each input value.
+4. It is a One-To-One mapping.
+5. Data Transformation : From Stream to Stream
+6. Use this method when the mapper function is producing a single value for each input value.
+
+flatMap()
+1. It processes stream of stream of values.
+2. It performs mapping as well as flattening.
+3. It’s mapper function produces multiple values for each input value.
+4. It is a One-To-Many mapping.
+5. Data Transformation : From Stream<Stream> to Stream
+6. Use this method when the mapper function is producing multiple values for each input value.
+
+
+public class Customer {
+    private int id;
+    private String name;
+    private String email;
+    private List<String> phoneNumbers;
+}
+
+public class MapVsFlatMap {
+     public static List<Customer> getAll() {
+        return Stream.of(
+                new Customer(101, "john", "john@gmail.com", Arrays.asList("397937955", "21654725")),
+                new Customer(102, "smith", "smith@gmail.com", Arrays.asList("89563865", "2487238947")),
+                new Customer(103, "peter", "peter@gmail.com", Arrays.asList("38946328654", "3286487236")),
+                new Customer(104, "kely", "kely@gmail.com", Arrays.asList("389246829364", "948609467"))
+        ).collect(Collectors.toList());
+    }
+    public static void main(String[] args) {
+
+      List<Customer> customers = getAll();
+
+        //List<Customer>  convert List<String> -> Data Transformation
+        //mapping : customer -> customer.getEmail()
+        //customer -> customer.getEmail()  one to one mapping, since one customer have one email
+        List<String> emails = customers.stream()
+                .map(customer -> customer.getEmail())
+                .collect(Collectors.toList());
+        System.out.println(emails);
+
+//customer -> customer.getPhoneNumbers()  ->> one to many mapping
+        //customer -> customer.getPhoneNumbers()  ->> one to many mapping
+        List<List<String>> phoneNumbers = customers.
+                stream().map(customer -> customer.getPhoneNumbers())
+                .collect(Collectors.toList());
+        System.out.println(phoneNumbers); //creates stream of phone numbers
+
+        //List<Customer>  convert List<String> -> Data Transformation
+        //mapping : customer -> phone Numbers
+        //customer -> customer.getPhoneNumbers()  ->> one to many mapping, since one customer have many phonenumbers
+        List<String> phones = customers.stream()
+                .flatMap(customer -> customer.getPhoneNumbers().stream())
+                .collect(Collectors.toList());
+        System.out.println(phones);  //flattens the phone number and prints 
+    }
+}
+
+Map and reduce
+    map() - Transformation of data
+    reduce() - aggregating data(convert element of streams into a single value)
+
+public class Employee {
+    private int id;
+    private String name;
+    private String grade;
+    private double salary;
+}
+
+public class MapReduceExample {
+     public static List<Employee> getEmployees(){
+      return  Stream.of(new Employee(101,"john","A",60000),
+              new Employee(109,"peter","B",30000),
+              new Employee(102,"mak","A",80000),
+              new Employee(103,"kim","A",90000),
+              new Employee(104,"json","C",15000))
+              .collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) {
+
+        List<Integer> numbers = Arrays.asList(3, 7, 8, 1, 5, 9);
+
+        List<String> words = Arrays.asList("corejava", "spring", "hibernate");
+
+        int sum = 0;
+        for (int no : numbers) {
+            sum = sum + no;
+        }
+        System.out.println(sum);
+
+        int sum1 = numbers.stream().mapToInt(i -> i).sum();
+        System.out.println(sum1);
+
+        Integer reduceSum = numbers.stream().reduce(0, (a, b) -> a + b);
+        System.out.println(reduceSum);
+
+        Optional<Integer> reduceSumWithMethodReference = numbers.stream().reduce(Integer::sum);
+        System.out.println(reduceSumWithMethodReference.get());
+
+        Integer mulResult = numbers.stream().reduce(1, (a, b) -> a * b);
+        System.out.println(mulResult);
+
+        Integer maxvalue = numbers.stream().reduce(0, (a, b) -> a > b ? a : b);
+        System.out.println(maxvalue);
+
+        Integer maxvalueWithMethodReference = numbers.stream().reduce(Integer::max).get();
+        System.out.println(maxvalueWithMethodReference);
+
+
+        String longestString = words.stream()
+                .reduce((word1, word2) -> word1.length() > word2.length() ? word1 : word2)
+                .get();
+        System.out.println(longestString);
+
+        //get employee whose grade A
+        //get salary
+        double avgSalary = getEmployees().stream()
+                .filter(employee -> employee.getGrade().equalsIgnoreCase("A"))
+                .map(employee -> employee.getSalary())
+                .mapToDouble(i -> i)
+                .average().getAsDouble();
+
+        System.out.println(avgSalary);
+
+        double sumSalary = getEmployees().stream()
+                .filter(employee -> employee.getGrade().equalsIgnoreCase("A"))
+                .map(employee -> employee.getSalary())
+                .mapToDouble(i -> i)
+                .sum();
+        System.out.println(sumSalary);
+    }
+
+
+}
